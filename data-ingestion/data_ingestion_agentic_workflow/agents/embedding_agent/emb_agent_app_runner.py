@@ -1,11 +1,12 @@
+import asyncio
 import logging
 from collections.abc import Coroutine
 from typing import Any
 
 from cezzis_kafka import spawn_consumers_async
 
-from .emb_agent_app_options import get_emb_agent_options
-from .emb_agent_evt_processor import CocktailsEmbeddingProcessor
+from data_ingestion_agentic_workflow.agents.embedding_agent.emb_agent_app_options import get_emb_agent_options
+from data_ingestion_agentic_workflow.agents.embedding_agent.emb_agent_evt_processor import CocktailsEmbeddingProcessor
 
 logger: logging.Logger = logging.getLogger("emb_agent_runner")
 
@@ -19,6 +20,10 @@ def run_embedding_agent() -> Coroutine[Any, Any, None]:
 
     logger.info("Starting Cocktail Embedding Agent")
     options = get_emb_agent_options()
+
+    if not options.enabled:
+        logger.info("Embedding agent is disabled. Exiting.")
+        return asyncio.sleep(0)  # Return a no-op coroutine
 
     return spawn_consumers_async(
         factory_type=CocktailsEmbeddingProcessor,

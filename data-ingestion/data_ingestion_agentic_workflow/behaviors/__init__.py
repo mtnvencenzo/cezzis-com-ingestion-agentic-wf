@@ -1,3 +1,3 @@
-from .otel import get_otel_options
+from data_ingestion_agentic_workflow.behaviors.otel import get_otel_options
 
 __all__ = ["get_otel_options"]

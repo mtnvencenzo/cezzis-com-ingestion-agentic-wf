@@ -27,7 +27,7 @@ def mock_env_vars() -> Dict[str, str]:
 @pytest.fixture
 def clear_settings_cache() -> Generator[None, None, None]:
     """Clear the settings module cache before each test."""
-    from .ext_agent_options import clear_ext_agent_options_cache
+    from data_ingestion_agentic_workflow.agents.extraction_agent.ext_agent_options import clear_ext_agent_options_cache
 
     # Clear the cached settings before test
     clear_ext_agent_options_cache()

@@ -9,6 +9,7 @@ class EmbeddingAgentAppOptions(BaseSettings):
     """Application settings loaded from environment variables and .env files.
 
     Attributes:
+        enabled (bool): Flag to enable or disable the embedding agent.
         bootstrap_servers (str): Kafka bootstrap servers.
         consumer_group (str): Kafka consumer group ID.
         embedding_topic_name (str): Kafka embedding topic name.
@@ -19,6 +20,7 @@ class EmbeddingAgentAppOptions(BaseSettings):
         env_file=(".env", f".env.{os.environ.get('ENV')}"), env_file_encoding="utf-8", extra="allow"
     )
 
+    enabled: bool = Field(default=True, validation_alias="AGENTS_ENABLE_EMBEDDING_AGENT")
     bootstrap_servers: str = Field(default="", validation_alias="KAFKA_BOOTSTRAP_SERVERS")
     consumer_group: str = Field(default="", validation_alias="KAFKA_CONSUMER_GROUP")
     embedding_topic_name: str = Field(default="", validation_alias="KAFKA_EMBEDDING_TOPIC_NAME")

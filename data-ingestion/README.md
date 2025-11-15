@@ -301,6 +301,7 @@ docker run -d \
   -e KAFKA_EXTRACTION_TOPIC_NAME=cocktails-update-topic \
   -e KAFKA_EMBEDDING_TOPIC_NAME=cocktails-embeddings-topic \
   -e KAFKA_NUM_CONSUMERS=1 \
+  -e OLLAMA_HOST=host.docker.internal:11434 \
   --name cezzis-ingestion-agentic-workflow \
   cezzis-ingestion-agentic-workflow:latest
 ```
@@ -323,8 +324,9 @@ docker run -d \
   -e KAFKA_EXTRACTION_TOPIC_NAME=cocktails-update-topic \
   -e KAFKA_EMBEDDING_TOPIC_NAME=cocktails-embeddings-topic \
   -e KAFKA_NUM_CONSUMERS=1 \
+  -e OLLAMA_HOST=host.docker.internal:11434 \
   --name cezzis-ingestion-agentic-workflow \
-  acrveceusgloshared001.azurecr.io/cocktailsdataingestionagenticwf:a7beb559c8e87454efb04505d8ee069a713c6a62
+  acrveceusgloshared001.azurecr.io/cocktailsdataingestionagenticwf:latest
 ```
 
 ### Docker Optimizations

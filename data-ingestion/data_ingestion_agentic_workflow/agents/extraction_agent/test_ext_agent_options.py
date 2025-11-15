@@ -5,7 +5,10 @@ from typing import Any, Dict, Generator
 import pytest
 from pytest_mock import MockerFixture
 
-from .test_fixtures import clear_settings_cache, mock_env_vars  # type: ignore[import]
+from data_ingestion_agentic_workflow.agents.extraction_agent.test_fixtures import (  # type: ignore[import]
+    clear_settings_cache,
+    mock_env_vars,
+)
 
 
 class TestExtractionAgentOptions:
@@ -22,7 +25,7 @@ class TestExtractionAgentOptions:
         mocker.patch.dict("os.environ", mock_env_vars)
         mocker.patch("builtins.print")  # Suppress print output
 
-        from .ext_agent_options import get_ext_agent_options
+        from data_ingestion_agentic_workflow.agents.extraction_agent.ext_agent_options import get_ext_agent_options
 
         # Call the function to get the settings instance
         options_instance = get_ext_agent_options()
@@ -49,7 +52,7 @@ class TestExtractionAgentOptions:
         )
 
         with pytest.raises(ValueError, match="KAFKA_BOOTSTRAP_SERVERS.*required"):
-            from .ext_agent_options import get_ext_agent_options
+            from data_ingestion_agentic_workflow.agents.extraction_agent.ext_agent_options import get_ext_agent_options
 
             get_ext_agent_options()  # type: ignore[unused-ignore]
 
@@ -68,7 +71,7 @@ class TestExtractionAgentOptions:
         )
 
         with pytest.raises(ValueError, match="KAFKA_CONSUMER_GROUP.*required"):
-            from .ext_agent_options import get_ext_agent_options
+            from data_ingestion_agentic_workflow.agents.extraction_agent.ext_agent_options import get_ext_agent_options
 
             get_ext_agent_options()  # type: ignore[unused-ignore]
 
@@ -87,7 +90,7 @@ class TestExtractionAgentOptions:
         )
 
         with pytest.raises(ValueError, match="KAFKA_EXTRACTION_TOPIC_NAME.*required"):
-            from .ext_agent_options import get_ext_agent_options
+            from data_ingestion_agentic_workflow.agents.extraction_agent.ext_agent_options import get_ext_agent_options
 
             get_ext_agent_options()  # type: ignore[unused-ignore]
 
@@ -106,7 +109,7 @@ class TestExtractionAgentOptions:
         )
 
         with pytest.raises(ValueError, match="OLLAMA_HOST.*required"):
-            from .ext_agent_options import get_ext_agent_options
+            from data_ingestion_agentic_workflow.agents.extraction_agent.ext_agent_options import get_ext_agent_options
 
             get_ext_agent_options()  # type: ignore[unused-ignore]
 
@@ -136,7 +139,7 @@ class TestExtractionAgentOptions:
         os.chdir(tmp_path)
 
         try:
-            from .ext_agent_options import ExtractionAgentOptions
+            from data_ingestion_agentic_workflow.agents.extraction_agent.ext_agent_options import ExtractionAgentOptions
 
             settings = ExtractionAgentOptions()
 
@@ -160,7 +163,7 @@ class TestExtractionAgentOptions:
         mocker.patch.dict("os.environ", mock_env_vars)
         mocker.patch("builtins.print")
 
-        from .ext_agent_options import ExtractionAgentOptions
+        from data_ingestion_agentic_workflow.agents.extraction_agent.ext_agent_options import ExtractionAgentOptions
 
         # Verify the model has the expected configuration
         assert ExtractionAgentOptions.model_config is not None

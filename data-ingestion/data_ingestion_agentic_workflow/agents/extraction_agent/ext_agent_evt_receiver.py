@@ -10,10 +10,9 @@ from opentelemetry.propagate import extract
 from opentelemetry.trace import Span
 from pydantic import ValidationError
 
+from data_ingestion_agentic_workflow.agents.extraction_agent.ext_agent_options import get_ext_agent_options
+from data_ingestion_agentic_workflow.llm.markdown_converter.llm_markdown_converter import LLMMarkdownConverter
 from data_ingestion_agentic_workflow.models.cocktail_models import CocktailModel
-
-from .ext_agent_options import get_ext_agent_options
-from .llm_processors import ExtractionDataMarkdownConverter
 
 
 class CocktailsExtractionEventReceiver(IAsyncKafkaMessageProcessor):
@@ -69,6 +68,13 @@ class CocktailsExtractionEventReceiver(IAsyncKafkaMessageProcessor):
             settings=KafkaProducerSettings(
                 bootstrap_servers=self._options.bootstrap_servers, on_delivery=self._on_delivered_to_embedding_topic
             )
+        )
+
+        self._markdown_converter = LLMMarkdownConverter(
+            ollama_host=self._options.ollama_host,
+            langfuse_host=self._options.langfuse_host,
+            langfuse_public_key=self._options.langfuse_public_key,
+            langfuse_secret_key=self._options.langfuse_secret_key,
         )
 
     @staticmethod
@@ -280,11 +286,9 @@ class CocktailsExtractionEventReceiver(IAsyncKafkaMessageProcessor):
             },
         )
 
-        markdown_llm_processor = ExtractionDataMarkdownConverter(self._options.ollama_host)
+        md_content = model.content or ""
 
-        md_content = model.content or ""  # .encode('raw_unicode_escape').decode('unicode_escape')
-
-        desc = await markdown_llm_processor.convert_markdown(md_content)
+        desc = await self._markdown_converter.convert_markdown(md_content)
 
         self._logger.info(
             "Sending cocktail extraction result message to embedding topic",

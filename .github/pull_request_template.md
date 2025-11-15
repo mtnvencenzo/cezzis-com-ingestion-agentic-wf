@@ -26,34 +26,15 @@ What type of change was this related to?
 - [ ] Unit tests added
 - [ ] Integration tests added
 - [ ] E2e tests added
-- [ ] Manually tested
-- [ ] Tested with local Kafka/infrastructure
+- [ ] Manually tested with local infrastructure
 
 <br/>
 
 ## ✅ Coding Checklist:
 
-- [ ] My code follows the style guidelines of this project
 - [ ] I have performed a self-review of my code
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published in downstream modules
-- [ ] I have updated requirements.txt or other dependency files if needed
-
-<br/>
-
-## 🚀 Deployment Notes
-
-<!--Any special deployment considerations-->
-
-- [ ] Has Messaging infrastructure (Kafka, etc.)
-- [ ] Has configuration changes (env, appsettings, etc)
-- [ ] Can be deployed independently
-- [ ] Requires coordinated deployment
-- [ ] Requires infrastructure changes (Terraform, etc.)
 
 <br/>
 
