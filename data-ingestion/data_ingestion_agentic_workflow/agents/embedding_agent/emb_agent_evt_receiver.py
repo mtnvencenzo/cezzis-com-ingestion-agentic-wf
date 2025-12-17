@@ -175,7 +175,6 @@ class EmbeddingAgentEventReceiver(BaseAgentEventReceiver):
                 ),
             )
 
-
             self._logger.info(
                 msg="Sending cocktail embedding result to vector database",
                 extra={
@@ -206,7 +205,6 @@ class EmbeddingAgentEventReceiver(BaseAgentEventReceiver):
                     },
                 )
                 return
-            
 
             self._logger.info(
                 msg="Ccocktail embedding result successfully stored in vector database",

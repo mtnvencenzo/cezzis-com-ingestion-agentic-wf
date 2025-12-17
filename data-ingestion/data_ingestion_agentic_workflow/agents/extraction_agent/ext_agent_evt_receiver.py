@@ -1,12 +1,10 @@
 import json
 import logging
-from typing import cast
 
 from cezzis_kafka import IAsyncKafkaMessageProcessor, KafkaConsumerSettings, KafkaProducer, KafkaProducerSettings
 from cezzis_otel import get_propagation_headers
 from confluent_kafka import Message
 from langchain.agents import create_agent
-from langchain_core.messages import BaseMessage
 from opentelemetry import trace
 from pydantic import ValidationError
 
@@ -18,7 +16,6 @@ from data_ingestion_agentic_workflow.llm.setup.llm_options import get_llm_option
 from data_ingestion_agentic_workflow.llm.setup.ollama_utils import get_ollama_chat_model
 from data_ingestion_agentic_workflow.models.cocktail_extraction_model import CocktailExtractionModel
 from data_ingestion_agentic_workflow.models.cocktail_models import CocktailModel
-from data_ingestion_agentic_workflow.prompts import extraction_sys_prompt, extraction_user_prompt
 from data_ingestion_agentic_workflow.tools.emoji_remover import remove_emojis
 from data_ingestion_agentic_workflow.tools.html_tag_remover import remove_html_tags
 from data_ingestion_agentic_workflow.tools.markdown_remover import remove_markdown
@@ -175,6 +172,7 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
             )
 
             from data_ingestion_agentic_workflow.tools import remove_emojis, remove_html_tags, remove_markdown
+
             result_content = await remove_markdown.ainvoke(model.content or "")
             result_content = await remove_html_tags.ainvoke(result_content or "")
             result_content = await remove_emojis.ainvoke(result_content or "")

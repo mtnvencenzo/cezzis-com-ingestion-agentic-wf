@@ -1,15 +1,9 @@
 import asyncio
 import atexit
 import logging
-import os
-import socket
-from importlib.metadata import version
 
 from cezzis_kafka import shutdown_consumers
-from cezzis_otel import OTelSettings, initialize_otel, shutdown_otel
-from opentelemetry.instrumentation.confluent_kafka import (  # type: ignore
-    ConfluentKafkaInstrumentor,
-)
+from cezzis_otel import shutdown_otel
 
 # Application specific imports
 from data_ingestion_agentic_workflow.agents import run_chunking_agent, run_embedding_agent, run_extraction_agent
