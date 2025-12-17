@@ -10,7 +10,7 @@ from opentelemetry.instrumentation.confluent_kafka import (  # type: ignore
 )
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
-from data_ingestion_agentic_workflow.behaviors.otel import get_otel_options
+from data_ingestion_agentic_workflow.behaviors.otel.otel_options import get_otel_options
 
 
 def initialize_opentelemetry() -> None:
