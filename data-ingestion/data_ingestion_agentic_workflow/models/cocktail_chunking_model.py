@@ -9,14 +9,14 @@ from data_ingestion_agentic_workflow.models.cocktail_models import CocktailModel
 @dataclass
 class CocktailDescriptionChunk:
     category: str
-    description: str
+    content: str
 
     @classmethod
     def from_dict(cls, data: dict):
         return cls(**data)
 
     def to_uuid(self) -> str:
-        return str(uuid5(NAMESPACE_DNS, f"{self.category}-{self.description}"))
+        return str(uuid5(NAMESPACE_DNS, f"{self.category}-{self.content}"))
 
 
 @dataclass

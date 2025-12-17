@@ -65,7 +65,7 @@ class ChunkingAgentEventReceiver(BaseAgentEventReceiver):
         self._content_chunker = LLMContentChunker(
             llm_options=get_llm_options(),
             model_options=LLMModelOptions(
-                model="llama3.2:3b",
+                model=self._options.llm_model,
                 temperature=0.0,
                 num_predict=-1,
                 verbose=True,

@@ -29,11 +29,10 @@
         "**/py-env": true,
         "**/__pycache__": true,
         "**/.pytest_cache": true,
-        "**/.ruff_cache": true
+        "**/.ruff_cache": true,
+        "**/.mypy_cache": true
     },
     "python-envs.defaultEnvManager": "ms-python.python:venv",
-    // "python.defaultInterpreterPath": ".venv/Scripts/python.exe", // Adjust path for macOS/Linux if needed
-    // "python.terminal.activateEnvironment": true,
     "python-envs.pythonProjects": [
         {
             "path": "",
@@ -45,13 +44,5 @@
         "data_ingestion_agentic_workflow"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true,
-    // "[python]": {
-    //     "editor.formatOnSave": true,
-    //     "editor.defaultFormatter": "charliermarsh.ruff",
-    //     "editor.codeActionsOnSave": {
-    //         "source.fixAll.ruff": "explicit",
-    //         "source.organizeImports.ruff": "explicit"
-    //     }
-    // }
+    "python.testing.pytestEnabled": true
 }

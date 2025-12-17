@@ -51,7 +51,7 @@ class EmbeddingAgentEventReceiver(BaseAgentEventReceiver):
         self._collection_exists: bool = False
         self.qdrant_client = QdrantClient(
             url=self._qdrant_options.host,  # http://localhost:6333 | https://aca-vec-eus-glo-qdrant-001.proudfield-08e1f932.eastus.azurecontainerapps.io
-            api_key=self._qdrant_options.api_key,
+            api_key=self._qdrant_options.api_key if self._qdrant_options.api_key else None,
             port=self._qdrant_options.port,
             https=self._qdrant_options.use_https,
             prefer_grpc=False,
@@ -125,7 +125,7 @@ class EmbeddingAgentEventReceiver(BaseAgentEventReceiver):
                 },
             )
 
-            chunks_to_embed = [chunk for chunk in chunking_model.chunks if chunk.description.strip() != ""]
+            chunks_to_embed = [chunk for chunk in chunking_model.chunks if chunk.content.strip() != ""]
 
             if not chunks_to_embed or len(chunks_to_embed) == 0:
                 self._logger.warning(
@@ -159,6 +159,15 @@ class EmbeddingAgentEventReceiver(BaseAgentEventReceiver):
                 ),
             )
 
+            self._logger.info(
+                msg="Deleting existing cocktail embedding vectors from database",
+                extra={
+                    "messaging.kafka.bootstrap_servers": self._kafka_consumer_settings.bootstrap_servers,
+                    "messaging.kafka.topic_name": self._options.consumer_topic_name,
+                    "cocktail.id": chunking_model.cocktail_model.id,
+                },
+            )
+
             self.qdrant_client.delete(
                 collection_name=self._qdrant_options.collection_name,
                 points_selector=Filter(
@@ -166,13 +175,23 @@ class EmbeddingAgentEventReceiver(BaseAgentEventReceiver):
                 ),
             )
 
+
+            self._logger.info(
+                msg="Sending cocktail embedding result to vector database",
+                extra={
+                    "messaging.kafka.bootstrap_servers": self._kafka_consumer_settings.bootstrap_servers,
+                    "messaging.kafka.topic_name": self._options.consumer_topic_name,
+                    "cocktail.id": chunking_model.cocktail_model.id,
+                },
+            )
+
             result = vector_store.add_texts(
-                texts=[chunk.description for chunk in chunks_to_embed],
+                texts=[chunk.content for chunk in chunks_to_embed],
                 metadatas=[
                     {
                         "cocktail_id": chunking_model.cocktail_model.id,
                         "category": chunk.category,
-                        "description": chunk.description,
+                        "description": chunk.content,
                     }
                     for chunk in chunks_to_embed
                 ],
@@ -187,9 +206,10 @@ class EmbeddingAgentEventReceiver(BaseAgentEventReceiver):
                     },
                 )
                 return
+            
 
             self._logger.info(
-                msg="Sending cocktail embedding result to vector database",
+                msg="Ccocktail embedding result successfully stored in vector database",
                 extra={
                     "messaging.kafka.bootstrap_servers": self._kafka_consumer_settings.bootstrap_servers,
                     "messaging.kafka.topic_name": self._options.consumer_topic_name,

@@ -12,7 +12,7 @@ class QDrantOptions(BaseSettings):
 
     host: str = Field(default="", validation_alias="QDRANT_HOST")
     port: int = Field(default=6333, validation_alias="QDRANT_PORT")
-    api_key: str = Field(default="", validation_alias="QDRANT_API_KEY")
+    api_key: str | None = Field(default=None, validation_alias="QDRANT_API_KEY")
     collection_name: str = Field(default="", validation_alias="QDRANT_COLLECTION_NAME")
     vector_size: int = Field(default=0, validation_alias="QDRANT_VECTOR_SIZE")
     use_https: bool = Field(default=True, validation_alias="QDRANT_USE_HTTPS")
@@ -38,8 +38,6 @@ def get_qdrant_options() -> QDrantOptions:
             raise ValueError("QDRANT_HOST environment variable is required")
         if not _qdrant_options.port:
             raise ValueError("QDRANT_PORT environment variable is required")
-        if not _qdrant_options.api_key:
-            raise ValueError("QDRANT_API_KEY environment variable is required")
         if not _qdrant_options.collection_name:
             raise ValueError("QDRANT_COLLECTION_NAME environment variable is required")
         if not _qdrant_options.vector_size or _qdrant_options.vector_size <= 0:

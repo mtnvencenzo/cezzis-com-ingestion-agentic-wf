@@ -34,4 +34,6 @@ def run_chunking_agent() -> Coroutine[Any, Any, None]:
         consumer_group=kafka_options.consumer_group,
         num_consumers=options.num_consumers,
         topic_name=options.consumer_topic_name,
+        max_poll_interval_ms=options.max_poll_interval_ms,
+        auto_offset_reset=options.auto_offset_reset,
     )
