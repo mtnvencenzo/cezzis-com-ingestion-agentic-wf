@@ -14,6 +14,7 @@ def mock_env_vars() -> Dict[str, str]:
         "CHUNKING_AGENT_KAFKA_TOPIC_NAME": "test-topic-extraction",
         "CHUNKING_AGENT_KAFKA_NUM_CONSUMERS": "1",
         "CHUNKING_AGENT_KAFKA_RESULTS_TOPIC_NAME": "test-topic-results",
+        "CHUNKING_AGENT_LLM_MODEL": "qwen3:8b",
     }
 
 
