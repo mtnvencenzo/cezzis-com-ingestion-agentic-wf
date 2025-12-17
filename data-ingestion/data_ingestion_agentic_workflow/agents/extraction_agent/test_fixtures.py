@@ -14,6 +14,7 @@ def mock_env_vars() -> Dict[str, str]:
         "EXTRACTION_AGENT_KAFKA_TOPIC_NAME": "test-topic-ext",
         "EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS": "1",
         "EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME": "test-topic-results",
+        "EXTRACTION_AGENT_MODEL": "hermes3-llama3.2:3b Q3_K_S",
     }
 
 

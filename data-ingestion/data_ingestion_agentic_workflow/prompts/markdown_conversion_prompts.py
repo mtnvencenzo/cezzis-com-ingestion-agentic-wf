@@ -1,1 +1,0 @@
-md_converter_sys_prompt: str = "You have access to a tool that can strip markdown formatting from text. Use the tool to help clean this markdown content.  Your final response should not include any extra content, explanatory text, or additional commentary."

@@ -1,3 +1,3 @@
-from .markdown_conversion_prompts import md_converter_sys_prompt
+from .extraction_prompts import extraction_sys_prompt, extraction_user_prompt
 
-__all__ = ["md_converter_sys_prompt"]
+__all__ = ["extraction_sys_prompt", "extraction_user_prompt"]

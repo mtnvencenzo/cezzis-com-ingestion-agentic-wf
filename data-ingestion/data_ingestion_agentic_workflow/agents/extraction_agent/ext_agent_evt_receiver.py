@@ -1,12 +1,10 @@
 import json
 import logging
-from typing import cast
 
 from cezzis_kafka import IAsyncKafkaMessageProcessor, KafkaConsumerSettings, KafkaProducer, KafkaProducerSettings
 from cezzis_otel import get_propagation_headers
 from confluent_kafka import Message
 from langchain.agents import create_agent
-from langchain_core.messages import BaseMessage
 from opentelemetry import trace
 from pydantic import ValidationError
 
@@ -18,8 +16,9 @@ from data_ingestion_agentic_workflow.llm.setup.llm_options import get_llm_option
 from data_ingestion_agentic_workflow.llm.setup.ollama_utils import get_ollama_chat_model
 from data_ingestion_agentic_workflow.models.cocktail_extraction_model import CocktailExtractionModel
 from data_ingestion_agentic_workflow.models.cocktail_models import CocktailModel
-from data_ingestion_agentic_workflow.prompts import md_converter_sys_prompt
-from data_ingestion_agentic_workflow.tools.markdown_converter.markdown_converter import convert_markdown
+from data_ingestion_agentic_workflow.tools.emoji_remover import remove_emojis
+from data_ingestion_agentic_workflow.tools.html_tag_remover import remove_html_tags
+from data_ingestion_agentic_workflow.tools.markdown_remover import remove_markdown
 
 
 class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
@@ -69,10 +68,10 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
         )
 
         self.llm = get_ollama_chat_model(
-            name="convert_markdown [llama3.2:3b]",
+            name=f"convert_markdown [{self._options.model}]",
             llm_options=get_llm_options(),
             llm_model_options=LLMModelOptions(
-                model="llama3.2:3b",
+                model=self._options.model,
                 temperature=0.0,
                 num_predict=-1,
                 verbose=True,
@@ -81,12 +80,7 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
             ),
         )
 
-        self.agent = create_agent(
-            model=self.llm,
-            tools=[convert_markdown],
-            system_prompt=md_converter_sys_prompt,
-        )
-        # self.llm.bind_tools([convert_markdown])
+        self.agent = create_agent(model=self.llm, tools=[remove_markdown, remove_html_tags, remove_emojis])
 
     @staticmethod
     def CreateNew(kafka_settings: KafkaConsumerSettings) -> IAsyncKafkaMessageProcessor:
@@ -106,7 +100,8 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
                 value = msg.value()
                 if value is not None:
                     decoded_value = value.decode("utf-8")
-                    json_array = json.loads(decoded_value)
+                    json_data = json.loads(decoded_value)
+                    json_array = json_data["data"] if "data" in json_data else json_data
 
                     span = trace.get_current_span()
                     span.set_attribute("cocktail_item_count", len(json_array))
@@ -123,9 +118,8 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
                         try:
                             cocktail_model = CocktailModel(**item)
                         except ValidationError as ve:
-                            self._logger.error(
+                            self._logger.exception(
                                 msg="Failed to parse cocktail extraction message item",
-                                exc_info=True,
                                 extra={
                                     **super().get_kafka_attributes(msg),
                                     "error": str(ve),
@@ -147,9 +141,8 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
                         try:
                             await self._process_message(model=cocktail_model)
                         except Exception as e:
-                            self._logger.error(
+                            self._logger.exception(
                                 msg="Error processing cocktail extraction message item",
-                                exc_info=True,
                                 extra={
                                     **super().get_kafka_attributes(msg),
                                     "error": str(e),
@@ -162,7 +155,7 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
                         extra={**super().get_kafka_attributes(msg)},
                     )
             except Exception:
-                self._logger.error(
+                self._logger.exception(
                     msg="Error processing cocktail extraction message",
                     extra={**super().get_kafka_attributes(msg)},
                 )
@@ -178,15 +171,31 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
                 },
             )
 
-            agent_result = await self.agent.ainvoke({"messages": [{"role": "user", "content": model.content or ""}]})
+            from data_ingestion_agentic_workflow.tools import remove_emojis, remove_html_tags, remove_markdown
 
-            result_list = cast(list[BaseMessage], agent_result["messages"])
-            result_content = result_list[-1].content if result_list else ""
+            result_content = await remove_markdown.ainvoke(model.content or "")
+            result_content = await remove_html_tags.ainvoke(result_content or "")
+            result_content = await remove_emojis.ainvoke(result_content or "")
 
-            if isinstance(result_content, list):
-                result_content = "\n".join(s if isinstance(s, str) else json.dumps(s) for s in result_content)
-            elif not isinstance(result_content, str):
-                result_content = str(result_content)
+            # --------------------------------------------------
+            # Uncomment to use lang chain tools
+            # --------------------------------------------------
+            # agent_result = await self.agent.ainvoke(
+            #     {
+            #         "messages": [
+            #             {"role": "system", "content": extraction_sys_prompt},
+            #             {"role": "user", "content": extraction_user_prompt.format(input_text=model.content or "")},
+            #         ]
+            #     }
+            # )
+
+            # result_list = cast(list[BaseMessage], agent_result["messages"])
+            # result_content = result_list[-1].content if result_list else ""
+
+            # if isinstance(result_content, list):
+            #     result_content = "\n".join(s if isinstance(s, str) else json.dumps(s) for s in result_content)
+            # elif not isinstance(result_content, str):
+            #     result_content = str(result_content)
 
             extraction_model = CocktailExtractionModel(
                 cocktail_model=model,
@@ -195,7 +204,7 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
 
             if extraction_model.extraction_text.strip() == "":
                 self._logger.warning(
-                    msg="LLM returned empty extraction text",
+                    msg="Empty extraction text received after processing",
                     extra={
                         "cocktail.id": model.id,
                     },

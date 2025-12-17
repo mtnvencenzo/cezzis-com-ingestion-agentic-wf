@@ -86,6 +86,21 @@ class TestExtractionAgentOptions:
         with pytest.raises(ValueError, match="EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME.*required"):
             get_ext_agent_options()
 
+    def test_settings_raises_error_when_model_missing(
+        self,
+        mock_env_vars: Dict[str, str],
+        clear_settings_cache: Any,
+        mocker: MockerFixture,
+    ) -> None:
+        mocker.patch.dict(
+            "os.environ",
+            {key: value for key, value in mock_env_vars.items() if key != "EXTRACTION_AGENT_MODEL"},
+            clear=True,
+        )
+
+        with pytest.raises(ValueError, match="EXTRACTION_AGENT_MODEL.*required"):
+            get_ext_agent_options()
+
     @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_with_env_file(
         self, clear_settings_cache: Generator[None, None, None], mocker: MockerFixture, tmp_path: Any
@@ -96,6 +111,7 @@ class TestExtractionAgentOptions:
             "EXTRACTION_AGENT_KAFKA_TOPIC_NAME=file-topic-ext\n"
             "EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME=file-topic-results\n"
             "EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS=2\n"
+            "EXTRACTION_AGENT_MODEL=hermes3-llama3.2:3b Q3_K_S\n"
             "EXTRA_VAR=extra-value\n"  # good for testing pydantics extra="allow" feature
         )
 
@@ -115,6 +131,7 @@ class TestExtractionAgentOptions:
             assert settings.consumer_topic_name == "file-topic-ext"
             assert settings.results_topic_name == "file-topic-results"
             assert settings.num_consumers == 2
+            assert settings.model == "hermes3-llama3.2:3b Q3_K_S"
         finally:
             os.chdir(original_dir)
 
