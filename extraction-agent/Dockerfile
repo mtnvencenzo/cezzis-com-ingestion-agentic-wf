@@ -1,11 +1,6 @@
 # Multi-stage build - use ubuntu with pre-installed tools for speed
 FROM python:3.12-bullseye AS builder
 
-# Install only the additional dependencies we need
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    librdkafka-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 # Setup poetry for build and dependency management
 RUN pip install --no-cache-dir poetry
 RUN poetry config virtualenvs.create true
@@ -16,7 +11,7 @@ WORKDIR /app/src
 
 # Copy only dependency files first (for better caching)
 COPY ./pyproject.toml ./poetry.lock ./README.md ./
-COPY ./data_ingestion_agentic_workflow/ ./data_ingestion_agentic_workflow/
+COPY ./src/cocktails_extraction_agent/ ./cocktails_extraction_agent/
 
 # Install dependencies with caching optimizations
 RUN poetry install --only=main
@@ -26,11 +21,6 @@ RUN poetry build -o dist -v
 
 # Final stage
 FROM python:3.12-slim
-
-# Install runtime dependencies in one layer
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    librdkafka1 \
-    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -42,5 +32,7 @@ RUN pip install --no-cache-dir --disable-pip-version-check *.tar.gz && rm *.tar.
 # Set Python to run in unbuffered mode for better logging
 ENV PYTHONUNBUFFERED=1
 
+EXPOSE 8000
+
 # Run the application using the installed package
-CMD ["python", "-m", "data_ingestion_agentic_workflow.app"]
+CMD ["cocktails_extraction_agent"]

@@ -2,13 +2,13 @@
         "version": "0.2.0",
         "configurations": [
             {
-                "name": "Run: Ingestion Agent",
+                "name": "Run: Extraction Agent",
                 "type": "debugpy",
                 "request": "launch",
-                "program": "app.py",
+                "program": "main.py",
                 "console": "integratedTerminal",
                 "python": "${workspaceFolder}/.venv/bin/python",
-                "cwd": "${workspaceFolder}/data_ingestion_agentic_workflow",
+                "cwd": "${workspaceFolder}/src/cocktails_extraction_agent",
                 "env": {
                     "ENV": "local"
                 }

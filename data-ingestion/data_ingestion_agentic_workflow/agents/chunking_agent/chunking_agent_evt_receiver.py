@@ -105,7 +105,10 @@ class ChunkingAgentEventReceiver(BaseAgentEventReceiver):
                     if not extraction_model.extraction_text or not extraction_model.cocktail_model:
                         self._logger.warning(
                             msg="Received empty cocktail extraction text",
-                            extra={**super().get_kafka_attributes(msg)},
+                            extra={
+                                **super().get_kafka_attributes(msg),
+                                **{"cocktail.id": extraction_model.cocktail_model.id if extraction_model.cocktail_model else 'unknown'}
+                            },
                         )
                         return
 
@@ -115,11 +118,11 @@ class ChunkingAgentEventReceiver(BaseAgentEventReceiver):
                     try:
                         await self._process_message(extraction_model=extraction_model)
                     except Exception as e:
-                        self._logger.error(
+                        self._logger.exception(
                             msg="Error processing cocktail chunking message item",
-                            exc_info=True,
                             extra={
                                 **super().get_kafka_attributes(msg),
+                                **{"cocktail.id": extraction_model.cocktail_model.id if extraction_model.cocktail_model else 'unknown'},
                                 "error": str(e),
                             },
                         )
@@ -130,7 +133,7 @@ class ChunkingAgentEventReceiver(BaseAgentEventReceiver):
                         extra={**super().get_kafka_attributes(msg)},
                     )
             except Exception as e:
-                self._logger.error(
+                self._logger.exception(
                     msg="Error processing cocktail chunking message",
                     extra={
                         **super().get_kafka_attributes(msg),

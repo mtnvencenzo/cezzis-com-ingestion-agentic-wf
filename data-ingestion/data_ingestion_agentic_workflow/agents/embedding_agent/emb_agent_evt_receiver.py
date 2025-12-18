@@ -89,23 +89,35 @@ class EmbeddingAgentEventReceiver(BaseAgentEventReceiver):
                     if not chunking_model.chunks or not chunking_model.cocktail_model:
                         self._logger.warning(
                             msg="Received empty cocktail chunking model",
-                            extra={**super().get_kafka_attributes(msg)},
+                            extra={
+                                **super().get_kafka_attributes(msg),
+                                **{"cocktail.id": chunking_model.cocktail_model.id if chunking_model.cocktail_model else 'unknown'},
+                            },
                         )
                         return
 
                     # ----------------------------------------
                     # Process the individual cocktail message
                     # ----------------------------------------
-                    self._process_message(chunking_model=chunking_model)
+                    try:
+                        self._process_message(chunking_model=chunking_model)
+                    except Exception as e:
+                        self._logger.exception(
+                            msg="Error processing cocktail embedding message item",
+                            extra={
+                                **super().get_kafka_attributes(msg),
+                                **{"cocktail.id": chunking_model.cocktail_model.id if chunking_model.cocktail_model else 'unknown'},
+                                "error": str(e),
+                            },
+                        ) 
                 else:
                     self._logger.warning(
                         msg="Received cocktail embedding message with no value",
                         extra={**super().get_kafka_attributes(msg)},
                     )
             except Exception as e:
-                self._logger.error(
+                self._logger.exception(
                     msg="Error processing cocktail embedding message",
-                    exc_info=True,
                     extra={
                         **super().get_kafka_attributes(msg),
                         "error": str(e),

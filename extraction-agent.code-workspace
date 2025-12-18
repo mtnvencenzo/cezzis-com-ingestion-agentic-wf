@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"name": ".github",
+			"path": ".github"
+		},
+		{
+			"name": "extraction-agent",
+			"path": "extraction-agent"
+		}
+	]
+}
