@@ -1,4 +1,4 @@
-.PHONY: install update build test lint format standards test coverage models
+.PHONY: install update build lint format test test coverage cocktails-api standards all
 
 install:
 	poetry install --with dev
@@ -15,30 +15,30 @@ lint:
 format:
 	poetry run ruff format . --config .ruff.toml
 
-standards:
-	@make lint
-	@echo "Code standards check complete."
-	@make format
-	@echo "Code formatting complete."
-
 test:
 	poetry run pytest
 
 coverage:
 	poetry run pytest -v --cov=data_ingestion_agentic_workflow --cov-report=xml:coverage.xml --cov-report=term --junitxml=pytest-results.xml
 
-models:
+cocktails-api:
 	poetry run datamodel-codegen \
-		--url "https://api.cezzis.com/prd/cocktails/api-docs/v1/scalar/v1/openapi.json" \
-		--input-file-type openapi --output data_ingestion_agentic_workflow/models/cocktail_models.py \
+		--url "http://localhost:7177/scalar/v1/openapi.json" \
+		--input-file-type openapi --output src/cocktails_extraction_agent/infrastructure/clients/cocktails_api/cocktail_api.py \
 		--output-model-type pydantic_v2.BaseModel \
 		--field-constraints --use-default \
 		--use-schema-description \
 		--target-python-version 3.12
 
+standards:
+	@make lint
+	@echo "Code standards check complete."
+	@make format
+	@echo "Code formatting complete."
+
 all:
 	@make install
-	@make models
+	@make cocktails-api
 	@make standards
 	@make coverage
 	@make build

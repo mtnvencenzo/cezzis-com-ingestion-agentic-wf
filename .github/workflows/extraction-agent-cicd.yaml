@@ -1,18 +1,16 @@
-name: cicd-cezzis-data-ingestion-agentic-wf
+name: cicd-extration-agent
 
 on:
   pull_request:
     branches: [main]
-    paths: [
-      data-ingestion/**,
-      .github/workflows/cezzis-data-ingestion-agentic-wf-cicd.yaml
-    ]
+    paths:
+      - 'extraction-agent/**'
+      - .github/workflows/extraction-agent-cicd.yaml
   push:
     branches: [main]
-    paths: [
-      data-ingestion/**,
-      .github/workflows/cezzis-data-ingestion-agentic-wf-cicd.yaml
-    ]
+    paths:
+      - 'extraction-agent/**'
+      - .github/workflows/extraction-agent-cicd.yaml
 
   workflow_dispatch:
 
@@ -26,7 +24,7 @@ jobs:
       semVer: ${{ steps.gitVersion.outputs.MajorMinorPatch }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with: 
           fetch-depth: 0
       
@@ -47,15 +45,15 @@ jobs:
     uses: mtnvencenzo/workflows/.github/workflows/py-build.yaml@main
     with:
       python_version: '3.12.3'
-      working_directory: './data-ingestion'
+      working_directory: 'extraction-agent'
       cache_dependencies: false
       ruff_config: '.ruff.toml'
-      pytest_args: '-v'
-      coverage_source: 'data_ingestion_agentic_workflow'
+      pytest_args: '-v test/'
+      coverage_source: 'src/cocktails_extraction_agent'
       upload_artifact: true
-      artifact_name: 'cocktails_data_ingestion_agentic_workflow'
-      unpack_filename: 'data_ingestion_agentic_workflow-${{ needs.gitVersion.outputs.semVer }}.tar.gz'
-      unpack_directory: './data_ingestion_agentic_workflow-${{ needs.gitVersion.outputs.semVer }}'
+      artifact_name: 'cocktails_extraction_agent'
+      unpack_filename: 'cocktails_extraction_agent-${{ needs.gitVersion.outputs.semVer }}.tar.gz'
+      unpack_directory: './cocktails_extraction_agent-${{ needs.gitVersion.outputs.semVer }}'
       setup_files: '["./Dockerfile", "./README.md", "./poetry.lock", "./pyproject.toml", "./.dockerignore"]'
       version: ${{ needs.gitVersion.outputs.semVer }}
       generate_stubs: false
@@ -65,13 +63,13 @@ jobs:
     needs: [build, gitVersion]
     uses: mtnvencenzo/workflows/.github/workflows/docker-build-and-push.yaml@main
     with:
-      working_directory: './data-ingestion'
+      working_directory: '.'
       allow_build_and_push: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_name == 'main' }}
-      artifact_name: 'cocktails_data_ingestion_agentic_workflow'
+      artifact_name: 'cocktails_extraction_agent'
       docker_file_name: 'Dockerfile'
       image_tags: '${{ github.sha }},${{ needs.gitVersion.outputs.semVer }},latest'
       acr_registry_login_server: 'acrveceusgloshared001.azurecr.io'
-      acr_image_repository: 'cocktailsdataingestionagenticwf'
+      acr_image_repository: 'cocktailsingestionextractionagent'
     secrets:
       acr_registry_login_username: ${{ secrets.ACR_REGISTRY_USERNAME }}
       acr_registry_login_password: ${{ secrets.ACR_REGISTRY_PASSWORD }}

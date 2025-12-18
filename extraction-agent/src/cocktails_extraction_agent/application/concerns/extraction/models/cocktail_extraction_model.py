@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from data_ingestion_agentic_workflow.models.cocktail_models import CocktailModel
+from cocktails_extraction_agent.infrastructure.clients.cocktails_api.cocktail_api import CocktailModel
 
 
 @dataclass
