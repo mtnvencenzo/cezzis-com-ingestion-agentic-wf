@@ -25,6 +25,9 @@ dependencies = [
     "opentelemetry-instrumentation-httpx (==0.59b0)",
 ]
 
+[project.scripts]
+cocktails-chunking-agent = "cocktails_chunking_agent.main:main_entry"
+
 [tool.poetry]
 exclude = [
     "**/test_*.py", # Excludes files starting with 'test_'
