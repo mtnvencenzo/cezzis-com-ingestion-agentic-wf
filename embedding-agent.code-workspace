@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"name": ".github",
+			"path": ".github"
+		},
+		{
+			"name": "embedding-agent",
+			"path": "embedding-agent"
+		}
+	]
+}

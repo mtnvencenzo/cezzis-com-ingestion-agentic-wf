@@ -1,0 +1,88 @@
+name: cicd-embedding-agent
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'embedding-agent/**'
+      - .github/workflows/embedding-agent-cicd.yaml
+  push:
+    branches: [main]
+    paths:
+      - 'embedding-agent/**'
+      - .github/workflows/embedding-agent-cicd.yaml
+
+  workflow_dispatch:
+
+jobs:
+  gitVersion:
+    name: Git version
+    permissions: 
+      contents: read
+    runs-on: ubuntu-latest
+    outputs:
+      semVer: ${{ steps.gitVersion.outputs.MajorMinorPatch }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with: 
+          fetch-depth: 0
+      
+      - name: Install GetVersion
+        uses: gittools/actions/gitversion/setup@v4.2.0
+        with:
+          versionSpec: "6.x"
+
+      - name: Use GitVersion
+        id: gitVersion
+        uses: gittools/actions/gitversion/execute@v4.2.0
+        with:
+          configFilePath: ./GitVersion.yml
+
+  build:
+    name: Build and test
+    needs: [gitVersion]
+    uses: mtnvencenzo/workflows/.github/workflows/py-build.yaml@main
+    with:
+      python_version: '3.12.3'
+      working_directory: 'embedding-agent'
+      cache_dependencies: false
+      ruff_config: '.ruff.toml'
+      pytest_args: '-v test/'
+      coverage_source: 'src/cocktails_embedding_agent'
+      upload_artifact: true
+      artifact_name: 'cocktails_embedding_agent'
+      unpack_filename: 'cocktails_embedding_agent-${{ needs.gitVersion.outputs.semVer }}.tar.gz'
+      unpack_directory: './cocktails_embedding_agent-${{ needs.gitVersion.outputs.semVer }}'
+      setup_files: '["./Dockerfile", "./README.md", "./poetry.lock", "./pyproject.toml", "./.dockerignore"]'
+      version: ${{ needs.gitVersion.outputs.semVer }}
+      generate_stubs: false
+
+  docker:
+    name: Containerize app
+    needs: [build, gitVersion]
+    uses: mtnvencenzo/workflows/.github/workflows/docker-build-and-push.yaml@main
+    with:
+      working_directory: '.'
+      allow_build_and_push: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_name == 'main' }}
+      artifact_name: 'cocktails_embedding_agent'
+      docker_file_name: 'Dockerfile'
+      image_tags: '${{ github.sha }},${{ needs.gitVersion.outputs.semVer }},latest'
+      acr_registry_login_server: 'acrveceusgloshared001.azurecr.io'
+      acr_image_repository: 'cocktailsingestionembeddingagent'
+    secrets:
+      acr_registry_login_username: ${{ secrets.ACR_REGISTRY_USERNAME }}
+      acr_registry_login_password: ${{ secrets.ACR_REGISTRY_PASSWORD }}
+
+  create_release_prd:
+    name: Create release
+    if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_name == 'main' }}
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    needs: [docker, gitVersion]
+    steps:
+      - name: Create release
+        uses: mtnvencenzo/workflows/.github/actions/create-release@main
+        with:
+          version: ${{ needs.gitVersion.outputs.semVer }}
