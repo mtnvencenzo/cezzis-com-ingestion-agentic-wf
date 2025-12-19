@@ -1,16 +1,16 @@
-name: cicd-extration-agent
+name: cicd-embedding-agent
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - 'extraction-agent/**'
-      - .github/workflows/extraction-agent-cicd.yaml
+      - 'embedding-agent/**'
+      - .github/workflows/embedding-agent-cicd.yaml
   push:
     branches: [main]
     paths:
-      - 'extraction-agent/**'
-      - .github/workflows/extraction-agent-cicd.yaml
+      - 'embedding-agent/**'
+      - .github/workflows/embedding-agent-cicd.yaml
 
   workflow_dispatch:
 
@@ -45,7 +45,7 @@ jobs:
     uses: mtnvencenzo/workflows/.github/workflows/py-build.yaml@main
     with:
       python_version: '3.12.3'
-      working_directory: 'extraction-agent'
+      working_directory: 'embedding-agent'
       cache_dependencies: false
       ruff_config: '.ruff.toml'
       pytest_args: '-v test/'
@@ -69,7 +69,7 @@ jobs:
       docker_file_name: 'Dockerfile'
       image_tags: '${{ github.sha }},${{ needs.gitVersion.outputs.semVer }},latest'
       acr_registry_login_server: 'acrveceusgloshared001.azurecr.io'
-      acr_image_repository: 'cocktailsingestionextractionagent'
+      acr_image_repository: 'cocktailsingestionembeddingagent'
     secrets:
       acr_registry_login_username: ${{ secrets.ACR_REGISTRY_USERNAME }}
       acr_registry_login_password: ${{ secrets.ACR_REGISTRY_PASSWORD }}
