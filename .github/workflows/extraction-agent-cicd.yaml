@@ -49,11 +49,11 @@ jobs:
       cache_dependencies: false
       ruff_config: '.ruff.toml'
       pytest_args: '-v test/'
-      coverage_source: 'src/cocktails_embedding_agent'
+      coverage_source: 'src/cocktails_extraction_agent'
       upload_artifact: true
-      artifact_name: 'cocktails_embedding_agent'
-      unpack_filename: 'cocktails_embedding_agent-${{ needs.gitVersion.outputs.semVer }}.tar.gz'
-      unpack_directory: './cocktails_embedding_agent-${{ needs.gitVersion.outputs.semVer }}'
+      artifact_name: 'cocktails_extraction_agent'
+      unpack_filename: 'cocktails_extraction_agent-${{ needs.gitVersion.outputs.semVer }}.tar.gz'
+      unpack_directory: './cocktails_extraction_agent-${{ needs.gitVersion.outputs.semVer }}'
       setup_files: '["./Dockerfile", "./README.md", "./poetry.lock", "./pyproject.toml", "./.dockerignore"]'
       version: ${{ needs.gitVersion.outputs.semVer }}
       generate_stubs: false
