@@ -65,7 +65,7 @@ jobs:
     with:
       working_directory: '.'
       allow_build_and_push: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_name == 'main' }}
-      artifact_name: 'cocktails_embedding_agent'
+      artifact_name: 'cocktails_extraction_agent'
       docker_file_name: 'Dockerfile'
       image_tags: '${{ github.sha }},${{ needs.gitVersion.outputs.semVer }},latest'
       acr_registry_login_server: 'acrveceusgloshared001.azurecr.io'
