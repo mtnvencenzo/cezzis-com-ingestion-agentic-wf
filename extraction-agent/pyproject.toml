@@ -28,6 +28,9 @@ dependencies = [
     "opentelemetry-instrumentation-httpx (==0.59b0)",
 ]
 
+[project.scripts]
+cocktails-extraction-agent = "cocktails_extraction_agent.main:main_entry"
+
 [tool.poetry]
 exclude = [
     "**/test_*.py", # Excludes files starting with 'test_'
