@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"name": ".github",
+			"path": ".github"
+		},
+		{
+			"name": "chunking-agent",
+			"path": "chunking-agent"
+		}
+	]
+}

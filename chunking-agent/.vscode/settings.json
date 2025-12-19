@@ -41,7 +41,7 @@
         }
     ],
     "python.testing.pytestArgs": [
-        "cocktails_extraction_agent"
+        "cocktails_chunking_agent"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true
