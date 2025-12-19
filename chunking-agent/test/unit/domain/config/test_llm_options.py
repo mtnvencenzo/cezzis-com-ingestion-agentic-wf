@@ -4,22 +4,23 @@ from typing import Any, Dict
 import pytest
 from pytest_mock import MockerFixture
 
-from data_ingestion_agentic_workflow.llm.setup.llm_options import LLMOptions, get_llm_options
-from data_ingestion_agentic_workflow.llm.setup.test_fixtures import (
-    clear_mock_llm_options_env_vars,
-    mock_llm_options_env_vars,
+from cocktails_chunking_agent.domain.config.llm_options import LLMOptions, get_llm_options
+
+from .test_fixtures import (  # type: ignore[import]
+    clear_settings_cache,
+    mock_env_vars,
 )
 
 
 class TestLLMOptions:
-    @pytest.mark.usefixtures("clear_mock_llm_options_env_vars")
+    @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_loads_from_environment_variables(
         self,
-        mock_llm_options_env_vars: Dict[str, str],
-        clear_mock_llm_options_env_vars: Generator[None, None, None],
+        mock_env_vars: Dict[str, str],
+        clear_settings_cache: Generator[None, None, None],
         mocker: MockerFixture,
     ) -> None:
-        mocker.patch.dict("os.environ", mock_llm_options_env_vars)
+        mocker.patch.dict("os.environ", mock_env_vars)
         mocker.patch("builtins.print")
 
         options_instance = get_llm_options()
@@ -29,16 +30,16 @@ class TestLLMOptions:
         assert options_instance.langfuse_public_key == "pk-lf-"
         assert options_instance.langfuse_host == "https://localhost:8080"
 
-    @pytest.mark.usefixtures("clear_mock_llm_options_env_vars")
+    @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_builds_when_llm_host_missing(
         self,
-        mock_llm_options_env_vars: Dict[str, str],
-        clear_mock_llm_options_env_vars: Generator[None, None, None],
+        mock_env_vars: Dict[str, str],
+        clear_settings_cache: Generator[None, None, None],
         mocker: MockerFixture,
     ) -> None:
         mocker.patch.dict(
             "os.environ",
-            {key: value for key, value in mock_llm_options_env_vars.items() if key != "LLM_HOST"},
+            {key: value for key, value in mock_env_vars.items() if key != "LLM_HOST"},
             clear=True,
         )
 
@@ -49,18 +50,18 @@ class TestLLMOptions:
         assert options_instance.langfuse_public_key == "pk-lf-"
         assert options_instance.langfuse_host == "https://localhost:8080"
 
-    @pytest.mark.usefixtures("clear_mock_llm_options_env_vars")
+    @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_loads_when_langfuse_options_missing(
         self,
-        mock_llm_options_env_vars: Dict[str, str],
-        clear_mock_llm_options_env_vars: Generator[None, None, None],
+        mock_env_vars: Dict[str, str],
+        clear_settings_cache: Generator[None, None, None],
         mocker: MockerFixture,
     ) -> None:
         mocker.patch.dict(
             "os.environ",
             {
                 key: value
-                for key, value in mock_llm_options_env_vars.items()
+                for key, value in mock_env_vars.items()
                 if key != "LANGFUSE_BASE_URL" and key != "LANGFUSE_PUBLIC_KEY" and key != "LANGFUSE_SECRET_KEY"
             },
             clear=True,
@@ -72,41 +73,41 @@ class TestLLMOptions:
         assert opts.langfuse_public_key == ""
         assert opts.langfuse_secret_key == ""
 
-    @pytest.mark.usefixtures("clear_mock_llm_options_env_vars")
+    @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_raises_error_when_langfuse_host_present_but_public_key_missing(
         self,
-        mock_llm_options_env_vars: Dict[str, str],
-        clear_mock_llm_options_env_vars: Generator[None, None, None],
+        mock_env_vars: Dict[str, str],
+        clear_settings_cache: Generator[None, None, None],
         mocker: MockerFixture,
     ) -> None:
         mocker.patch.dict(
             "os.environ",
-            {key: value for key, value in mock_llm_options_env_vars.items() if key != "LANGFUSE_PUBLIC_KEY"},
+            {key: value for key, value in mock_env_vars.items() if key != "LANGFUSE_PUBLIC_KEY"},
             clear=True,
         )
 
         with pytest.raises(ValueError, match="LANGFUSE_PUBLIC_KEY.*required"):
             get_llm_options()
 
-    @pytest.mark.usefixtures("clear_mock_llm_options_env_vars")
+    @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_raises_error_when_langfuse_host_present_but_secret_key_missing(
         self,
-        mock_llm_options_env_vars: Dict[str, str],
-        clear_mock_llm_options_env_vars: Generator[None, None, None],
+        mock_env_vars: Dict[str, str],
+        clear_settings_cache: Generator[None, None, None],
         mocker: MockerFixture,
     ) -> None:
         mocker.patch.dict(
             "os.environ",
-            {key: value for key, value in mock_llm_options_env_vars.items() if key != "LANGFUSE_SECRET_KEY"},
+            {key: value for key, value in mock_env_vars.items() if key != "LANGFUSE_SECRET_KEY"},
             clear=True,
         )
 
         with pytest.raises(ValueError, match="LANGFUSE_SECRET_KEY.*required"):
             get_llm_options()
 
-    @pytest.mark.usefixtures("clear_mock_llm_options_env_vars")
+    @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_with_env_file(
-        self, clear_mock_llm_options_env_vars: Generator[None, None, None], mocker: MockerFixture, tmp_path: Any
+        self, clear_settings_cache: Generator[None, None, None], mocker: MockerFixture, tmp_path: Any
     ) -> None:
         env_file = tmp_path / ".env"
         env_file.write_text(
@@ -136,14 +137,14 @@ class TestLLMOptions:
         finally:
             os.chdir(original_dir)
 
-    @pytest.mark.usefixtures("clear_mock_llm_options_env_vars")
+    @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_model_config(
         self,
-        mock_llm_options_env_vars: Dict[str, str],
-        clear_mock_llm_options_env_vars: Generator[None, None, None],
+        mock_env_vars: Dict[str, str],
+        clear_settings_cache: Generator[None, None, None],
         mocker: MockerFixture,
     ) -> None:
-        mocker.patch.dict("os.environ", mock_llm_options_env_vars)
+        mocker.patch.dict("os.environ", mock_env_vars)
         mocker.patch("builtins.print")
 
         # Verify the model has the expected configuration

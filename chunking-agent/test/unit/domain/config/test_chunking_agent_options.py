@@ -5,19 +5,20 @@ from typing import Any, Dict, Generator
 import pytest
 from pytest_mock import MockerFixture
 
-from data_ingestion_agentic_workflow.agents.extraction_agent.ext_agent_options import (
-    ExtractionAgentOptions,
-    get_ext_agent_options,
+from cocktails_chunking_agent.domain.config.chunking_agent_options import (
+    ChunkingAgentOptions,
+    get_chunking_agent_options,
 )
-from data_ingestion_agentic_workflow.agents.extraction_agent.test_fixtures import (  # type: ignore[import]
+
+from .test_fixtures import (  # type: ignore[import]
     clear_settings_cache,
     mock_env_vars,
 )
 
 
-class TestExtractionAgentOptions:
+class TestChunkingAgentOptions:
     @pytest.mark.usefixtures("clear_settings_cache")
-    def test_ext_agent_settings_loads_from_environment_variables(
+    def test_chunking_agent_settings_loads_from_environment_variables(
         self,
         mock_env_vars: Dict[str, str],
         clear_settings_cache: Generator[None, None, None],
@@ -26,9 +27,9 @@ class TestExtractionAgentOptions:
         mocker.patch.dict("os.environ", mock_env_vars)
         mocker.patch("builtins.print")
 
-        options_instance = get_ext_agent_options()
+        options_instance = get_chunking_agent_options()
 
-        assert options_instance.consumer_topic_name == "test-topic-ext"
+        assert options_instance.consumer_topic_name == "test-topic-extraction"
         assert options_instance.results_topic_name == "test-topic-results"
         assert options_instance.num_consumers == 1
         assert options_instance.enabled is True
@@ -42,12 +43,12 @@ class TestExtractionAgentOptions:
     ) -> None:
         mocker.patch.dict(
             "os.environ",
-            {key: value for key, value in mock_env_vars.items() if key != "EXTRACTION_AGENT_KAFKA_TOPIC_NAME"},
+            {key: value for key, value in mock_env_vars.items() if key != "CHUNKING_AGENT_KAFKA_TOPIC_NAME"},
             clear=True,
         )
 
-        with pytest.raises(ValueError, match="EXTRACTION_AGENT_KAFKA_TOPIC_NAME.*required"):
-            get_ext_agent_options()
+        with pytest.raises(ValueError, match="CHUNKING_AGENT_KAFKA_TOPIC_NAME.*required"):
+            get_chunking_agent_options()
 
     @pytest.mark.usefixtures("clear_settings_cache")
     @pytest.mark.parametrize("num_consumers", ["0", "-1"])
@@ -61,14 +62,14 @@ class TestExtractionAgentOptions:
         mocker.patch.dict(
             "os.environ",
             {
-                **{k: v for k, v in mock_env_vars.items() if k != "EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS"},
-                "EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS": num_consumers,
+                **{k: v for k, v in mock_env_vars.items() if k != "CHUNKING_AGENT_KAFKA_NUM_CONSUMERS"},
+                "CHUNKING_AGENT_KAFKA_NUM_CONSUMERS": num_consumers,
             },
             clear=True,
         )
 
-        with pytest.raises(ValueError, match="EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS.*positive integer"):
-            get_ext_agent_options()
+        with pytest.raises(ValueError, match="CHUNKING_AGENT_KAFKA_NUM_CONSUMERS.*positive integer"):
+            get_chunking_agent_options()
 
     @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_raises_error_when_results_topic_name_missing(
@@ -79,27 +80,12 @@ class TestExtractionAgentOptions:
     ) -> None:
         mocker.patch.dict(
             "os.environ",
-            {key: value for key, value in mock_env_vars.items() if key != "EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME"},
+            {key: value for key, value in mock_env_vars.items() if key != "CHUNKING_AGENT_KAFKA_RESULTS_TOPIC_NAME"},
             clear=True,
         )
 
-        with pytest.raises(ValueError, match="EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME.*required"):
-            get_ext_agent_options()
-
-    def test_settings_raises_error_when_model_missing(
-        self,
-        mock_env_vars: Dict[str, str],
-        clear_settings_cache: Any,
-        mocker: MockerFixture,
-    ) -> None:
-        mocker.patch.dict(
-            "os.environ",
-            {key: value for key, value in mock_env_vars.items() if key != "EXTRACTION_AGENT_MODEL"},
-            clear=True,
-        )
-
-        with pytest.raises(ValueError, match="EXTRACTION_AGENT_MODEL.*required"):
-            get_ext_agent_options()
+        with pytest.raises(ValueError, match="CHUNKING_AGENT_KAFKA_RESULTS_TOPIC_NAME.*required"):
+            get_chunking_agent_options()
 
     @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_with_env_file(
@@ -107,11 +93,10 @@ class TestExtractionAgentOptions:
     ) -> None:
         env_file = tmp_path / ".env"
         env_file.write_text(
-            "EXTRACTION_AGENT_ENABLED=true\n"
-            "EXTRACTION_AGENT_KAFKA_TOPIC_NAME=file-topic-ext\n"
-            "EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME=file-topic-results\n"
-            "EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS=2\n"
-            "EXTRACTION_AGENT_MODEL=hermes3-llama3.2:3b Q3_K_S\n"
+            "CHUNKING_AGENT_ENABLED=true\n"
+            "CHUNKING_AGENT_KAFKA_TOPIC_NAME=file-topic-chunk\n"
+            "CHUNKING_AGENT_KAFKA_RESULTS_TOPIC_NAME=file-topic-results\n"
+            "CHUNKING_AGENT_KAFKA_NUM_CONSUMERS=2\n"
             "EXTRA_VAR=extra-value\n"  # good for testing pydantics extra="allow" feature
         )
 
@@ -125,13 +110,12 @@ class TestExtractionAgentOptions:
         os.chdir(tmp_path)
 
         try:
-            settings = ExtractionAgentOptions()
+            settings = ChunkingAgentOptions()
 
             assert settings.enabled is True
-            assert settings.consumer_topic_name == "file-topic-ext"
+            assert settings.consumer_topic_name == "file-topic-chunk"
             assert settings.results_topic_name == "file-topic-results"
             assert settings.num_consumers == 2
-            assert settings.model == "hermes3-llama3.2:3b Q3_K_S"
         finally:
             os.chdir(original_dir)
 
@@ -146,6 +130,6 @@ class TestExtractionAgentOptions:
         mocker.patch("builtins.print")
 
         # Verify the model has the expected configuration
-        assert ExtractionAgentOptions.model_config is not None
-        assert "env_file" in ExtractionAgentOptions.model_config
-        assert ExtractionAgentOptions.model_config.get("env_file_encoding") == "utf-8"
+        assert ChunkingAgentOptions.model_config is not None
+        assert "env_file" in ChunkingAgentOptions.model_config
+        assert ChunkingAgentOptions.model_config.get("env_file_encoding") == "utf-8"

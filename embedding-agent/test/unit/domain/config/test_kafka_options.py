@@ -3,8 +3,12 @@ from typing import Any, Dict, Generator
 import pytest
 from pytest_mock import MockerFixture
 
-from data_ingestion_agentic_workflow.infra.kafka_options import KafkaOptions, get_kafka_options
-from data_ingestion_agentic_workflow.infra.test_fixtures import clear_settings_cache, mock_env_vars
+from cocktails_embedding_agent.domain.config.kafka_options import KafkaOptions, get_kafka_options
+
+from .test_fixtures import (  # type: ignore[import]
+    clear_settings_cache,
+    mock_env_vars,
+)
 
 
 class TestKafkaOptions:

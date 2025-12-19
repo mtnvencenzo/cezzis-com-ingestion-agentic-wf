@@ -5,11 +5,12 @@ from typing import Any, Dict, Generator
 import pytest
 from pytest_mock import MockerFixture
 
-from data_ingestion_agentic_workflow.agents.embedding_agent.emb_agent_options import (
+from cocktails_embedding_agent.domain.config.emb_agent_options import (
     EmbeddingAgentOptions,
     get_emb_agent_options,
 )
-from data_ingestion_agentic_workflow.agents.embedding_agent.test_fixtures import (  # type: ignore[import]
+
+from .test_fixtures import (  # type: ignore[import]
     clear_settings_cache,
     mock_env_vars,
 )
