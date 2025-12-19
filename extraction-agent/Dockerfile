@@ -35,4 +35,4 @@ ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
 
 # Run the application using the installed package
-CMD ["cocktails_extraction_agent"]
+CMD ["cocktails-extraction-agent"]
