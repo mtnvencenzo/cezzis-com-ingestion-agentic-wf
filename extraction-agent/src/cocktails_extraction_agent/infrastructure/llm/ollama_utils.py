@@ -55,9 +55,9 @@ def get_ollama_chat_model(name: str, llm_options: LLMOptions, llm_model_options:
     """
     return ChatOllama(
         name=name,
+        verbose=llm_model_options.verbose or False,
         model=llm_model_options.model,
         base_url=llm_options.llm_host,
-        verbose=llm_model_options.verbose or False,
         reasoning=llm_model_options.reasoning,
         mirostat=llm_model_options.mirostat,
         mirostat_eta=llm_model_options.mirostat_eta,

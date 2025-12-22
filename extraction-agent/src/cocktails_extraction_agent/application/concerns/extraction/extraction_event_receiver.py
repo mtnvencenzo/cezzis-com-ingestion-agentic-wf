@@ -1,29 +1,30 @@
 import json
 import logging
 
-from cezzis_kafka import IAsyncKafkaMessageProcessor, KafkaConsumerSettings, KafkaProducer, KafkaProducerSettings
-from cezzis_otel import get_propagation_headers
+from cezzis_kafka import IAsyncKafkaMessageProcessor, KafkaConsumerSettings
 from confluent_kafka import Message
+from injector import inject
 from langchain.agents import create_agent
+from mediatr import Mediator
 from opentelemetry import trace
 from pydantic import ValidationError
 
-from cocktails_extraction_agent.application.concerns.extraction.models.cocktail_extraction_model import (
-    CocktailExtractionModel,
+from cocktails_extraction_agent.application.concerns.extraction.commands.process_extration_event_command import (
+    ProcessExtractionEventCommand,
 )
 from cocktails_extraction_agent.application.tools.emoji_remover import remove_emojis
 from cocktails_extraction_agent.application.tools.html_tag_remover import remove_html_tags
 from cocktails_extraction_agent.application.tools.markdown_remover import remove_markdown
 from cocktails_extraction_agent.domain.base_agent_evt_receiver import BaseAgentEventReceiver
-from cocktails_extraction_agent.domain.config.ext_agent_options import get_ext_agent_options
-from cocktails_extraction_agent.domain.config.kafka_options import KafkaOptions, get_kafka_options
+from cocktails_extraction_agent.domain.config.ext_agent_options import ExtractionAgentOptions
+from cocktails_extraction_agent.domain.config.kafka_options import KafkaOptions
 from cocktails_extraction_agent.domain.config.llm_model_options import LLMModelOptions
 from cocktails_extraction_agent.domain.config.llm_options import get_llm_options
 from cocktails_extraction_agent.infrastructure.clients.cocktails_api.cocktail_api import CocktailModel
 from cocktails_extraction_agent.infrastructure.llm.ollama_utils import get_ollama_chat_model
 
 
-class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
+class ExtractionEventReceiver(BaseAgentEventReceiver):
     """Concrete implementation of IAsyncKafkaMessageProcessor for processing cocktail extraction messages from Kafka.
 
     Attributes:
@@ -35,12 +36,19 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
         message_received(msg: Message) -> None:
             Process a received Kafka message.
         CreateNew(kafka_settings: KafkaConsumerSettings) -> IAsyncKafkaMessageProcessor:
-            Factory method to create a new instance of CocktailsExtractionEventReceiver.
+            Factory method to create a new instance of ExtractionEventReceiver.
 
     """
 
-    def __init__(self, kafka_consumer_settings: KafkaConsumerSettings) -> None:
-        """Initialize the CocktailsExtractionEventReceiver
+    @inject
+    def __init__(
+        self,
+        kafka_consumer_settings: KafkaConsumerSettings,
+        ext_agent_options: ExtractionAgentOptions,
+        kafka_options: KafkaOptions,
+        mediator: Mediator,
+    ) -> None:
+        """Initialize the ExtractionEventReceiver
         Args:
             kafka_consumer_settings (KafkaConsumerSettings): The Kafka consumer settings.
             kafka_producer_settings (KafkaProducerSettings): The Kafka producer settings.
@@ -50,30 +58,16 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
         """
         super().__init__(kafka_consumer_settings=kafka_consumer_settings)
 
-        self._logger: logging.Logger = logging.getLogger("extraction_agent")
-        self._tracer = trace.get_tracer("extraction_agent")
-        self._options = get_ext_agent_options()
-
-        kafka_options: KafkaOptions = get_kafka_options()
-
-        self.producer = KafkaProducer(
-            settings=KafkaProducerSettings(
-                bootstrap_servers=kafka_options.bootstrap_servers,
-                on_delivery=lambda err, msg: (
-                    self._logger.error(f"Message delivery failed: {err}")
-                    if err
-                    else self._logger.info(
-                        f"Message delivered to {msg.topic()} [{msg.partition()}] at offset {msg.offset()}"
-                    )
-                ),
-            )
-        )
+        self.logger: logging.Logger = logging.getLogger("extraction_agent")
+        self.tracer = trace.get_tracer("extraction_agent")
+        self.ext_agent_options = ext_agent_options
+        self.mediator = mediator
 
         self.llm = get_ollama_chat_model(
-            name=f"convert_markdown [{self._options.model}]",
+            name=f"convert_markdown [{self.ext_agent_options.model}]",
             llm_options=get_llm_options(),
             llm_model_options=LLMModelOptions(
-                model=self._options.model,
+                model=self.ext_agent_options.model,
                 temperature=0.0,
                 num_predict=-1,
                 verbose=True,
@@ -86,18 +80,20 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
 
     @staticmethod
     def CreateNew(kafka_settings: KafkaConsumerSettings) -> IAsyncKafkaMessageProcessor:
-        """Factory method to create a new instance of CocktailsExtractionEventReceiver.
+        """Factory method to create a new instance of ExtractionEventReceiver.
 
         Args:
             kafka_settings (KafkaConsumerSettings): The Kafka consumer settings.
 
         Returns:
-            IAsyncKafkaMessageProcessor: A new instance of CocktailsExtractionEventReceiver.
+            IAsyncKafkaMessageProcessor: A new instance of ExtractionEventReceiver.
         """
-        return CocktailsExtractionEventReceiver(kafka_consumer_settings=kafka_settings)
+        from cocktails_extraction_agent.app_module import injector
+
+        return injector.get(ExtractionEventReceiver)
 
     async def message_received(self, msg: Message) -> None:
-        with super().create_kafka_consumer_read_span(self._tracer, "cocktail-extraction-message-processing", msg):
+        with super().create_kafka_consumer_read_span(self.tracer, "cocktail-extraction-message-processing", msg):
             try:
                 value = msg.value()
                 if value is not None:
@@ -141,7 +137,12 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
                         # Process the individual cocktail message
                         # ----------------------------------------
                         try:
-                            await self._process_message(model=cocktail_model)
+                            with super().create_processing_read_span(
+                                self.tracer,
+                                "cocktail-extraction-item-processing",
+                                span_attributes={"cocktail_id": cocktail_id},
+                            ):
+                                await self._process_message(model=cocktail_model)
                         except Exception as e:
                             self._logger.exception(
                                 msg="Error processing cocktail extraction message item",
@@ -163,67 +164,4 @@ class CocktailsExtractionEventReceiver(BaseAgentEventReceiver):
                 )
 
     async def _process_message(self, model: CocktailModel) -> None:
-        with super().create_processing_read_span(
-            self._tracer, "cocktail-extraction-item-processing", span_attributes={"cocktail_id": model.id}
-        ):
-            self._logger.info(
-                msg="Processing cocktail extraction message item",
-                extra={
-                    "cocktail.id": model.id,
-                },
-            )
-
-            result_content = await remove_markdown.ainvoke(model.content or "")
-            result_content = await remove_html_tags.ainvoke(result_content or "")
-            result_content = await remove_emojis.ainvoke(result_content or "")
-
-            # --------------------------------------------------
-            # Uncomment to use lang chain tools
-            # --------------------------------------------------
-            # agent_result = await self.agent.ainvoke(
-            #     {
-            #         "messages": [
-            #             {"role": "system", "content": extraction_sys_prompt},
-            #             {"role": "user", "content": extraction_user_prompt.format(input_text=model.content or "")},
-            #         ]
-            #     }
-            # )
-
-            # result_list = cast(list[BaseMessage], agent_result["messages"])
-            # result_content = result_list[-1].content if result_list else ""
-
-            # if isinstance(result_content, list):
-            #     result_content = "\n".join(s if isinstance(s, str) else json.dumps(s) for s in result_content)
-            # elif not isinstance(result_content, str):
-            #     result_content = str(result_content)
-
-            extraction_model = CocktailExtractionModel(
-                cocktail_model=model,
-                extraction_text=result_content,
-            )
-
-            if extraction_model.extraction_text.strip() == "":
-                self._logger.warning(
-                    msg="Empty extraction text received after processing",
-                    extra={
-                        "cocktail.id": model.id,
-                    },
-                )
-                return
-
-            self._logger.info(
-                msg="Sending cocktail extraction model to chunking topic",
-                extra={
-                    "messaging.kafka.bootstrap_servers": self._kafka_consumer_settings.bootstrap_servers,
-                    "messaging.kafka.topic_name": self._options.results_topic_name,
-                    "cocktail.id": model.id,
-                },
-            )
-
-            self.producer.send_and_wait(
-                topic=self._options.results_topic_name,
-                key=model.id,
-                message=extraction_model.as_serializable_json(),
-                headers=get_propagation_headers(),
-                timeout=30.0,
-            )
+        await self.mediator.send_async(ProcessExtractionEventCommand(model=model))
