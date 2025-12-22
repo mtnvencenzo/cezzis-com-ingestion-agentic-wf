@@ -10,7 +10,7 @@
                 "python": "${workspaceFolder}/.venv/bin/python",
                 "cwd": "${workspaceFolder}/src/cocktails_extraction_agent",
                 "env": {
-                    "ENV": "local"
+                    "ENV": "loc"
                 }
             }
         ]
