@@ -2,7 +2,7 @@ from cezzis_kafka import KafkaConsumerSettings, KafkaProducer
 from injector import Binder, Injector, Module, noscope, singleton
 from mediatr import Mediator
 
-from cocktails_extraction_agent.application.concerns import ExtractionEventReceiver, RunAgentCommandHandler
+from cocktails_extraction_agent.application.concerns import RunAgentCommandHandler
 from cocktails_extraction_agent.domain.config import (
     ExtractionAgentOptions,
     KafkaOptions,
@@ -11,28 +11,43 @@ from cocktails_extraction_agent.domain.config import (
 )
 from cocktails_extraction_agent.domain.config.kafka_consumer_settings import get_kafka_consumer_settings
 from cocktails_extraction_agent.domain.config.kafka_producer_settings import get_kafka_producer_settings
+from cocktails_extraction_agent.domain.config.llm_model_options import LLMModelOptions
+from cocktails_extraction_agent.domain.config.llm_options import LLMOptions, get_llm_options
+from cocktails_extraction_agent.infrastructure.eventing import ExtractionEventReceiver
+from cocktails_extraction_agent.infrastructure.llm.ollama_llm_factory import OllamaLLMFactory
 
 
 def create_injector() -> Injector:
     return Injector([AppModule()])
 
 
-def my_class_handler_manager(handler_class, is_behavior=False):
-    if is_behavior:
-        pass
-
+def mediator_manager(handler_class, is_behavior=False):
     return injector.get(handler_class)
 
 
 class AppModule(Module):
     def configure(self, binder: Binder):
-        binder.bind(Mediator, Mediator(handler_class_manager=my_class_handler_manager), scope=singleton)
+        ext_agent_options = get_ext_agent_options()
+
+        llm_model_options = LLMModelOptions(
+            model=ext_agent_options.model,
+            temperature=0.0,
+            num_predict=-1,
+            verbose=True,
+            timeout_seconds=30,
+            reasoning=False,
+        )
+
+        binder.bind(Mediator, Mediator(handler_class_manager=mediator_manager), scope=singleton)
         binder.bind(KafkaOptions, get_kafka_options(), scope=singleton)
         binder.bind(KafkaConsumerSettings, get_kafka_consumer_settings(), scope=singleton)
-        binder.bind(ExtractionAgentOptions, get_ext_agent_options(), scope=singleton)
+        binder.bind(LLMOptions, get_llm_options(), scope=singleton)
+        binder.bind(LLMModelOptions, llm_model_options, scope=singleton)
+        binder.bind(ExtractionAgentOptions, ext_agent_options, scope=singleton)
         binder.bind(RunAgentCommandHandler, RunAgentCommandHandler, scope=singleton)
         binder.bind(ExtractionEventReceiver, ExtractionEventReceiver, scope=noscope)
         binder.bind(KafkaProducer, KafkaProducer(get_kafka_producer_settings()), scope=singleton)
+        binder.bind(OllamaLLMFactory, OllamaLLMFactory, scope=singleton)
 
 
 injector = create_injector()

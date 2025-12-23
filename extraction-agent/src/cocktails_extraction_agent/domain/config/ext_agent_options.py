@@ -29,6 +29,7 @@ class ExtractionAgentOptions(BaseSettings):
     max_poll_interval_ms: int = Field(default=300000, validation_alias="EXTRACTION_AGENT_KAFKA_MAX_POLL_INTERVAL_MS")
     auto_offset_reset: str = Field(default="earliest", validation_alias="EXTRACTION_AGENT_KAFKA_AUTO_OFFSET_RESET")
     model: str = Field(default="", validation_alias="EXTRACTION_AGENT_MODEL")
+    use_llm: bool = Field(default=False, validation_alias="EXTRACTION_AGENT_USE_LLM")
 
 
 _logger: logging.Logger = logging.getLogger("ext_agent_options")

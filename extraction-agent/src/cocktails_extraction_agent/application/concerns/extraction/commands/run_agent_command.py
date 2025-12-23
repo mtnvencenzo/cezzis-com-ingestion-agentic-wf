@@ -4,9 +4,9 @@ from cezzis_kafka import spawn_consumers_async
 from injector import inject
 from mediatr import GenericQuery, Mediator
 
-from cocktails_extraction_agent.application.concerns.extraction.extraction_event_receiver import ExtractionEventReceiver
 from cocktails_extraction_agent.domain.config.ext_agent_options import ExtractionAgentOptions
 from cocktails_extraction_agent.domain.config.kafka_options import KafkaOptions
+from cocktails_extraction_agent.infrastructure.eventing.extraction_event_receiver import ExtractionEventReceiver
 
 
 class RunAgentCommand(GenericQuery[bool]):
