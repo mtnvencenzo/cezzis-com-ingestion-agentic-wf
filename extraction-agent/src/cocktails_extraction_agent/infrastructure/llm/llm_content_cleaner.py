@@ -47,7 +47,9 @@ class LLMContentCleaner:
                         "content": extraction_user_prompt.format(input_text=content or ""),
                     },
                 ]
-            }
+            },
+            config={"callbacks": [self.langfuse_handler]},
+            timeout=self.llm_timeout,
         )
 
         result_list = cast(list[BaseMessage], agent_result["messages"])
