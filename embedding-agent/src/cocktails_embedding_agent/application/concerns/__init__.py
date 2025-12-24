@@ -1,4 +1,4 @@
-from cocktails_embedding_agent.application.concerns import (
+from cocktails_embedding_agent.application.concerns.embedding import (
     ProcessEmbeddingEventCommand,
     ProcessEmbeddingEventCommandHandler,
     RunEmbeddingAgentCommand,
