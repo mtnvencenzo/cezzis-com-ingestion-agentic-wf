@@ -35,6 +35,14 @@ def initialize_opentelemetry() -> None:
             enable_tracing=otel_options.enable_tracing,
             enable_console_logging=otel_options.enable_console_logging,
         ),
+        resource_attributes={
+            "app_name": "cocktails-ingestion-extraction-agent",
+            "app_class": "ai-agent",
+            "app_product": "cezzis.com",
+            "app_product_segment": "backend",
+            "app_unit": "cocktails",
+            "app_env": os.environ.get("ENV", "unknown"),
+        },
         configure_tracing=lambda _: (
             ConfluentKafkaInstrumentor().instrument(),
             RequestsInstrumentor().instrument(),

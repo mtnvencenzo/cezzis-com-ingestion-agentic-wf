@@ -6,8 +6,8 @@ chunking_sys_prompt = """
     Here are the available categories and the descriptions of the content that should be placed in each category:
     - historical and geographical
         This should be used for the history and geographical background of the cocktail which can include it's origin, evolution, and cultural significance.
-    - famous people
-        This should be used for notable individuals associated with the cocktail, such as its creator or famous personalities who have popularized it. This can also be authors, books and movies or movie stars.
+    - famous references
+        This should be used for notable individuals associated with the cocktail like authors, bartenders, movie stars or other famous people or places.
     - suggestions
         This should be used for serving suggestions, pairing recommendations, or occasions for enjoying the cocktail.
     - flavor profile
@@ -33,7 +33,7 @@ chunking_sys_prompt = """
         1.3 Ensure that each category is only represented once in the output.
         1.4 Ensure all categories exist in the final json output, even if some categories have no content and are represented with an empty string.
     2. Do not alter any sentences or paragraphs when moving them into the categories.  Just copy them as they are into the appropriate category.
-    3. All content must be represented in at least one category but can be included in multiple categories if it is appropriate.
+    3. All content must be represented in a category.
     4. Format the output as a JSON array of objects, where each category is represented in the array as an object containing these two fields.
     5. Do not add any new sentences or information that are not present in the original content. If a category has no relevant sentences, leave its "content" property as an empty string.
     6. Do not provide any additional commentary or explanation outside of the JSON array.  The output must only be the array.

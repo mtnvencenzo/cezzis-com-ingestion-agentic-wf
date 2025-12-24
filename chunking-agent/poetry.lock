@@ -135,14 +135,14 @@ files = [
 
 [[package]]
 name = "cezzis-kafka"
-version = "0.0.15"
+version = "0.0.17"
 description = "cezzis-kafka is a lightweight Python library for working with Kafka topics and event streams. It simplifies producing, consuming, and managing messages, enabling seamless integration with distributed systems and real-time data pipelines. Designed for flexibility and ease of use, cezzis-kafka supports both synchronous and asynchronous workflows."
 optional = false
 python-versions = "<3.15,>=3.12"
 groups = ["main"]
 files = [
-    {file = "cezzis_kafka-0.0.15-py3-none-any.whl", hash = "sha256:f67e8059a0bdb6228fdc2c99613afd769664803c999649735fd66c540a92dbd5"},
-    {file = "cezzis_kafka-0.0.15.tar.gz", hash = "sha256:d159b049c41686119ec1a5b2f18d264553906757b167bf207fb44a15e7eaba38"},
+    {file = "cezzis_kafka-0.0.17-py3-none-any.whl", hash = "sha256:cc79eb0353cfde15a817074749f2ca882e26838db56d9f530fbdd01373a0863b"},
+    {file = "cezzis_kafka-0.0.17.tar.gz", hash = "sha256:30795ff93da3f04e5facfc0052d25b53634ee1d06e7e07c88121ca85abf52f34"},
 ]
 
 [package.dependencies]
@@ -151,14 +151,14 @@ types-confluent-kafka = ">=1.4.0,<2.0.0"
 
 [[package]]
 name = "cezzis-otel"
-version = "0.0.12"
+version = "0.0.17"
 description = "cezzis-otel is a lightweight Python library for working with opentelemetry.  It simplifies otel collector and otlpexporter integration."
 optional = false
 python-versions = "<3.15,>=3.12"
 groups = ["main"]
 files = [
-    {file = "cezzis_otel-0.0.12-py3-none-any.whl", hash = "sha256:f0a027fa45edd610817a4135da301bb67d03f862ee2257700b183bb9ce48b9d2"},
-    {file = "cezzis_otel-0.0.12.tar.gz", hash = "sha256:a17636ba3f92c9d1a0652ce697d78c866ecd6a7b92fd44dcdd5c095c3d12e1bd"},
+    {file = "cezzis_otel-0.0.17-py3-none-any.whl", hash = "sha256:8865285824ac5a13c42e8a021d6342df9547533f07fd2607533f887651ae60e8"},
+    {file = "cezzis_otel-0.0.17.tar.gz", hash = "sha256:40b3a0900591439d159e1c4ec53330545d3022b9dbb74224e330963bb7665d2c"},
 ]
 
 [package.dependencies]
