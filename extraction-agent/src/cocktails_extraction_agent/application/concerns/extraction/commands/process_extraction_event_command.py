@@ -20,7 +20,7 @@ from cocktails_extraction_agent.application.prompts.extraction_prompts import (
 from cocktails_extraction_agent.application.tools.emoji_remover.emoji_remover import remove_emojis
 from cocktails_extraction_agent.application.tools.html_tag_remover.html_tag_remover import remove_html_tags
 from cocktails_extraction_agent.application.tools.markdown_remover.markdown_remover import remove_markdown
-from cocktails_extraction_agent.domain.config.ext_agent_options import ExtractionAgentOptions
+from cocktails_extraction_agent.domain.config.app_options import AppOptions
 from cocktails_extraction_agent.infrastructure.clients.cocktails_api.cocktail_api import CocktailModel
 from cocktails_extraction_agent.infrastructure.llm.ollama_llm_factory import OllamaLLMFactory
 
@@ -44,17 +44,15 @@ class ProcessExtractionEventCommandHandler:
     def __init__(
         self,
         kafka_producer: KafkaProducer,
-        ext_agent_options: ExtractionAgentOptions,
-        kafka_consumer_options: KafkaConsumerSettings,
+        app_options: AppOptions,
         ollama_llm_factory: OllamaLLMFactory,
     ) -> None:
         self.kafka_producer = kafka_producer
-        self.kafka_consiumer_settings = kafka_consumer_options
-        self.ext_agent_options = ext_agent_options
+        self.app_options = app_options
         self.ollama_llm_factory = ollama_llm_factory
         self.logger = logging.getLogger("process_extraction_event_command_handler")
         self.tracer = trace.get_tracer("extraction_agent")
-        self.llm = self.ollama_llm_factory.get_ollama_chat(name=f"convert_content [{self.ext_agent_options.model}]")
+        self.llm = self.ollama_llm_factory.get_ollama_chat(name=f"convert_content [{self.app_options.model}]")
         self.agent = create_agent(model=self.llm, tools=[remove_markdown, remove_html_tags, remove_emojis])
 
     async def handle(self, command: ProcessExtractionEventCommand) -> bool:
@@ -69,7 +67,7 @@ class ProcessExtractionEventCommandHandler:
 
         result_content = ""
 
-        if not self.ext_agent_options.use_llm:
+        if not self.app_options.use_llm:
             # ----------------------------------------------------------------------------
             # If not using LLM, use basic cleaning tools
             # ----------------------------------------------------------------------------
@@ -119,13 +117,13 @@ class ProcessExtractionEventCommandHandler:
             msg="Sending cocktail extraction model to chunking topic",
             extra={
                 "messaging.kafka.bootstrap_servers": self.kafka_producer.settings.bootstrap_servers,
-                "messaging.kafka.topic_name": self.ext_agent_options.results_topic_name,
+                "messaging.kafka.topic_name": self.app_options.results_topic_name,
                 "cocktail.id": command.model.id,
             },
         )
 
         self.kafka_producer.send_and_wait(
-            topic=self.ext_agent_options.results_topic_name,
+            topic=self.app_options.results_topic_name,
             key=command.model.id,
             message=extraction_model.as_serializable_json(),
             headers=get_propagation_headers(),

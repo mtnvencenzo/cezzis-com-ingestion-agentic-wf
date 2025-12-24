@@ -5,7 +5,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class ExtractionAgentOptions(BaseSettings):
+class AppOptions(BaseSettings):
     """Application settings loaded from environment variables and .env files.
 
     Attributes:
@@ -32,43 +32,43 @@ class ExtractionAgentOptions(BaseSettings):
     use_llm: bool = Field(default=False, validation_alias="EXTRACTION_AGENT_USE_LLM")
 
 
-_logger: logging.Logger = logging.getLogger("ext_agent_options")
+_logger: logging.Logger = logging.getLogger("app_options")
 
-_ext_agent_options: ExtractionAgentOptions | None = None
+_app_options: AppOptions | None = None
 
 
-def get_ext_agent_options() -> ExtractionAgentOptions:
-    """Get the singleton instance of ExtractionAgentOptions.
+def get_app_options() -> AppOptions:
+    """Get the singleton instance of AppOptions.
 
     Returns:
-        ExtractionAgentOptions: The application options instance.
+        AppOptions: The application options instance.
     """
-    global _ext_agent_options
-    if _ext_agent_options is None:
-        _ext_agent_options = ExtractionAgentOptions()
+    global _app_options
+    if _app_options is None:
+        _app_options = AppOptions()
 
         # Validate required configuration
-        if not _ext_agent_options.consumer_topic_name:
+        if not _app_options.consumer_topic_name:
             raise ValueError("EXTRACTION_AGENT_KAFKA_TOPIC_NAME environment variable is required")
-        if not _ext_agent_options.results_topic_name:
+        if not _app_options.results_topic_name:
             raise ValueError("EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME environment variable is required")
-        if not _ext_agent_options.num_consumers or _ext_agent_options.num_consumers < 1:
+        if not _app_options.num_consumers or _app_options.num_consumers < 1:
             raise ValueError("EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS environment variable must be a positive integer")
-        if not _ext_agent_options.model:
+        if not _app_options.model:
             raise ValueError("EXTRACTION_AGENT_MODEL environment variable is required")
-        if _ext_agent_options.auto_offset_reset not in ("earliest", "latest", "none"):
+        if _app_options.auto_offset_reset not in ("earliest", "latest", "none"):
             raise ValueError(
                 "EXTRACTION_AGENT_KAFKA_AUTO_OFFSET_RESET environment variable must be one of: earliest, latest, none"
             )
-        if _ext_agent_options.max_poll_interval_ms < 1000:
+        if _app_options.max_poll_interval_ms < 1000:
             raise ValueError("EXTRACTION_AGENT_KAFKA_MAX_POLL_INTERVAL_MS must be at least 1000 milliseconds")
 
         _logger.info("Extraction agent options loaded successfully.")
 
-    return _ext_agent_options
+    return _app_options
 
 
-def clear_ext_agent_options_cache() -> None:
+def clear_app_options_cache() -> None:
     """Clear the cached options instance. Useful for testing."""
-    global _ext_agent_options
-    _ext_agent_options = None
+    global _app_options
+    _app_options = None

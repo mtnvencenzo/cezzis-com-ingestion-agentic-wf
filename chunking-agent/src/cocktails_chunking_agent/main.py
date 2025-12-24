@@ -2,13 +2,16 @@ import asyncio
 import logging
 import sys
 
-# from mediatr import Mediator
-# from cocktails_extraction_agent.app_module import injector
+from mediatr import Mediator
+
+from cocktails_chunking_agent.app_module import injector
 from cocktails_chunking_agent.application import initialize_opentelemetry
 from cocktails_chunking_agent.application.behaviors.exception_handling.global_exception_handler import (
     global_exception_handler,
 )
-from cocktails_chunking_agent.application.concerns.chunking.chunking_agent_runner import run_chunking_agent
+from cocktails_chunking_agent.application.concerns.chunking.commands.run_chunking_agent_command import (
+    RunChunkingAgentCommand,
+)
 
 sys.excepthook = global_exception_handler
 
@@ -23,8 +26,10 @@ async def main():
     logger = logging.getLogger("main")
     logger.info("Starting cocktails ingestion chunking agent...")
 
+    mediator = injector.get(Mediator)
+
     try:
-        await asyncio.gather(run_chunking_agent())
+        await mediator.send_async(RunChunkingAgentCommand())
     except asyncio.CancelledError:
         logger.info("Application cancelled")
     except Exception as e:

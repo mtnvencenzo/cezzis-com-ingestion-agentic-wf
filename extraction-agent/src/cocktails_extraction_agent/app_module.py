@@ -2,11 +2,11 @@ from cezzis_kafka import KafkaConsumerSettings, KafkaProducer
 from injector import Binder, Injector, Module, noscope, singleton
 from mediatr import Mediator
 
-from cocktails_extraction_agent.application.concerns import RunAgentCommandHandler
+from cocktails_extraction_agent.application.concerns import RunExtractionAgentCommandHandler
 from cocktails_extraction_agent.domain.config import (
-    ExtractionAgentOptions,
+    AppOptions,
     KafkaOptions,
-    get_ext_agent_options,
+    get_app_options,
     get_kafka_options,
 )
 from cocktails_extraction_agent.domain.config.kafka_consumer_settings import get_kafka_consumer_settings
@@ -27,10 +27,10 @@ def mediator_manager(handler_class, is_behavior=False):
 
 class AppModule(Module):
     def configure(self, binder: Binder):
-        ext_agent_options = get_ext_agent_options()
+        app_options = get_app_options()
 
         llm_model_options = LLMModelOptions(
-            model=ext_agent_options.model,
+            model=app_options.model,
             temperature=0.0,
             num_predict=-1,
             verbose=True,
@@ -43,8 +43,8 @@ class AppModule(Module):
         binder.bind(KafkaConsumerSettings, get_kafka_consumer_settings(), scope=singleton)
         binder.bind(LLMOptions, get_llm_options(), scope=singleton)
         binder.bind(LLMModelOptions, llm_model_options, scope=singleton)
-        binder.bind(ExtractionAgentOptions, ext_agent_options, scope=singleton)
-        binder.bind(RunAgentCommandHandler, RunAgentCommandHandler, scope=singleton)
+        binder.bind(AppOptions, app_options, scope=singleton)
+        binder.bind(RunExtractionAgentCommandHandler, RunExtractionAgentCommandHandler, scope=singleton)
         binder.bind(ExtractionEventReceiver, ExtractionEventReceiver, scope=noscope)
         binder.bind(KafkaProducer, KafkaProducer(get_kafka_producer_settings()), scope=singleton)
         binder.bind(OllamaLLMFactory, OllamaLLMFactory, scope=singleton)

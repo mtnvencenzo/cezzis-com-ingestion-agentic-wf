@@ -1,7 +1,7 @@
 from cezzis_kafka import KafkaConsumerSettings
 
-from cocktails_extraction_agent.domain.config.app_options import get_app_options
-from cocktails_extraction_agent.domain.config.kafka_options import get_kafka_options
+from cocktails_chunking_agent.domain.config.app_options import get_app_options
+from cocktails_chunking_agent.domain.config.kafka_options import get_kafka_options
 
 
 def get_kafka_consumer_settings() -> KafkaConsumerSettings:

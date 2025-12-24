@@ -5,9 +5,9 @@ from typing import Any, Dict, Generator
 import pytest
 from pytest_mock import MockerFixture
 
-from cocktails_extraction_agent.domain.config.ext_agent_options import (
-    ExtractionAgentOptions,
-    get_ext_agent_options,
+from cocktails_extraction_agent.domain.config.app_options import (
+    AppOptions,
+    get_app_options,
 )
 
 from .test_fixtures import (  # type: ignore[import]
@@ -16,7 +16,7 @@ from .test_fixtures import (  # type: ignore[import]
 )
 
 
-class TestExtractionAgentOptions:
+class TestAppOptions:
     @pytest.mark.usefixtures("clear_settings_cache")
     def test_ext_agent_settings_loads_from_environment_variables(
         self,
@@ -27,7 +27,7 @@ class TestExtractionAgentOptions:
         mocker.patch.dict("os.environ", mock_env_vars)
         mocker.patch("builtins.print")
 
-        options_instance = get_ext_agent_options()
+        options_instance = get_app_options()
 
         assert options_instance.consumer_topic_name == "test-topic-ext"
         assert options_instance.results_topic_name == "test-topic-results"
@@ -48,7 +48,7 @@ class TestExtractionAgentOptions:
         )
 
         with pytest.raises(ValueError, match="EXTRACTION_AGENT_KAFKA_TOPIC_NAME.*required"):
-            get_ext_agent_options()
+            get_app_options()
 
     @pytest.mark.usefixtures("clear_settings_cache")
     @pytest.mark.parametrize("num_consumers", ["0", "-1"])
@@ -69,7 +69,7 @@ class TestExtractionAgentOptions:
         )
 
         with pytest.raises(ValueError, match="EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS.*positive integer"):
-            get_ext_agent_options()
+            get_app_options()
 
     @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_raises_error_when_results_topic_name_missing(
@@ -85,7 +85,7 @@ class TestExtractionAgentOptions:
         )
 
         with pytest.raises(ValueError, match="EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME.*required"):
-            get_ext_agent_options()
+            get_app_options()
 
     def test_settings_raises_error_when_model_missing(
         self,
@@ -100,7 +100,7 @@ class TestExtractionAgentOptions:
         )
 
         with pytest.raises(ValueError, match="EXTRACTION_AGENT_MODEL.*required"):
-            get_ext_agent_options()
+            get_app_options()
 
     @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_with_env_file(
@@ -126,7 +126,7 @@ class TestExtractionAgentOptions:
         os.chdir(tmp_path)
 
         try:
-            settings = ExtractionAgentOptions()
+            settings = AppOptions()
 
             assert settings.enabled is True
             assert settings.consumer_topic_name == "file-topic-ext"
@@ -147,6 +147,6 @@ class TestExtractionAgentOptions:
         mocker.patch("builtins.print")
 
         # Verify the model has the expected configuration
-        assert ExtractionAgentOptions.model_config is not None
-        assert "env_file" in ExtractionAgentOptions.model_config
-        assert ExtractionAgentOptions.model_config.get("env_file_encoding") == "utf-8"
+        assert AppOptions.model_config is not None
+        assert "env_file" in AppOptions.model_config
+        assert AppOptions.model_config.get("env_file_encoding") == "utf-8"

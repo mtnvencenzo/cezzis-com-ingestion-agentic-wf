@@ -1,3 +1,4 @@
-from cocktails_chunking_agent.infrastructure.llm.ollama_utils import get_ollama_model_client
+from cocktails_chunking_agent.infrastructure.llm.ollama_llm_factory import OllamaLLMFactory
+from cocktails_chunking_agent.infrastructure.llm.llm_content_chunker import LLMContentChunker
 
-__all__ = ["get_ollama_model_client"]
+__all__ = ["OllamaLLMFactory", "LLMContentChunker"]

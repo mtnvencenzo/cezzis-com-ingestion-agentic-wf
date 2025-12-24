@@ -5,9 +5,9 @@ from typing import Any, Dict, Generator
 import pytest
 from pytest_mock import MockerFixture
 
-from cocktails_chunking_agent.domain.config.chunking_agent_options import (
-    ChunkingAgentOptions,
-    get_chunking_agent_options,
+from cocktails_chunking_agent.domain.config.app_options import (
+    AppOptions,
+    get_app_options,
 )
 
 from .test_fixtures import (  # type: ignore[import]
@@ -16,7 +16,7 @@ from .test_fixtures import (  # type: ignore[import]
 )
 
 
-class TestChunkingAgentOptions:
+class TestAppOptions:
     @pytest.mark.usefixtures("clear_settings_cache")
     def test_chunking_agent_settings_loads_from_environment_variables(
         self,
@@ -27,7 +27,7 @@ class TestChunkingAgentOptions:
         mocker.patch.dict("os.environ", mock_env_vars)
         mocker.patch("builtins.print")
 
-        options_instance = get_chunking_agent_options()
+        options_instance = get_app_options()
 
         assert options_instance.consumer_topic_name == "test-topic-extraction"
         assert options_instance.results_topic_name == "test-topic-results"
@@ -48,7 +48,7 @@ class TestChunkingAgentOptions:
         )
 
         with pytest.raises(ValueError, match="CHUNKING_AGENT_KAFKA_TOPIC_NAME.*required"):
-            get_chunking_agent_options()
+            get_app_options()
 
     @pytest.mark.usefixtures("clear_settings_cache")
     @pytest.mark.parametrize("num_consumers", ["0", "-1"])
@@ -69,7 +69,7 @@ class TestChunkingAgentOptions:
         )
 
         with pytest.raises(ValueError, match="CHUNKING_AGENT_KAFKA_NUM_CONSUMERS.*positive integer"):
-            get_chunking_agent_options()
+            get_app_options()
 
     @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_raises_error_when_results_topic_name_missing(
@@ -85,7 +85,7 @@ class TestChunkingAgentOptions:
         )
 
         with pytest.raises(ValueError, match="CHUNKING_AGENT_KAFKA_RESULTS_TOPIC_NAME.*required"):
-            get_chunking_agent_options()
+            get_app_options()
 
     @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_with_env_file(
@@ -110,7 +110,7 @@ class TestChunkingAgentOptions:
         os.chdir(tmp_path)
 
         try:
-            settings = ChunkingAgentOptions()
+            settings = AppOptions()
 
             assert settings.enabled is True
             assert settings.consumer_topic_name == "file-topic-chunk"
@@ -130,6 +130,6 @@ class TestChunkingAgentOptions:
         mocker.patch("builtins.print")
 
         # Verify the model has the expected configuration
-        assert ChunkingAgentOptions.model_config is not None
-        assert "env_file" in ChunkingAgentOptions.model_config
-        assert ChunkingAgentOptions.model_config.get("env_file_encoding") == "utf-8"
+        assert AppOptions.model_config is not None
+        assert "env_file" in AppOptions.model_config
+        assert AppOptions.model_config.get("env_file_encoding") == "utf-8"

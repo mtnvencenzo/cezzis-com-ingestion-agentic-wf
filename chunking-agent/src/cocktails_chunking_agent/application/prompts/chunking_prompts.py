@@ -52,5 +52,5 @@ chunking_sys_prompt = """
 
 chunking_user_prompt: str = """
     Categorize this cocktail description into meaningful sections by following the instructions.:
-    {content}
+    {input_text}
     """
