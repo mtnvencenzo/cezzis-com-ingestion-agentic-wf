@@ -95,11 +95,11 @@ class TestAppOptions:
     ) -> None:
         mocker.patch.dict(
             "os.environ",
-            {key: value for key, value in mock_env_vars.items() if key != "EXTRACTION_AGENT_MODEL"},
+            {key: value for key, value in mock_env_vars.items() if key != "EXTRACTION_AGENT_LLM_MODEL"},
             clear=True,
         )
 
-        with pytest.raises(ValueError, match="EXTRACTION_AGENT_MODEL.*required"):
+        with pytest.raises(ValueError, match="EXTRACTION_AGENT_LLM_MODEL.*required"):
             get_app_options()
 
     @pytest.mark.usefixtures("clear_settings_cache")
@@ -112,7 +112,7 @@ class TestAppOptions:
             "EXTRACTION_AGENT_KAFKA_TOPIC_NAME=file-topic-ext\n"
             "EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME=file-topic-results\n"
             "EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS=2\n"
-            "EXTRACTION_AGENT_MODEL=hermes3-llama3.2:3b Q3_K_S\n"
+            "EXTRACTION_AGENT_LLM_MODEL=hermes3-llama3.2:3b Q3_K_S\n"
             "EXTRA_VAR=extra-value\n"  # good for testing pydantics extra="allow" feature
         )
 
@@ -132,7 +132,7 @@ class TestAppOptions:
             assert settings.consumer_topic_name == "file-topic-ext"
             assert settings.results_topic_name == "file-topic-results"
             assert settings.num_consumers == 2
-            assert settings.model == "hermes3-llama3.2:3b Q3_K_S"
+            assert settings.llm_model == "hermes3-llama3.2:3b Q3_K_S"
         finally:
             os.chdir(original_dir)
 

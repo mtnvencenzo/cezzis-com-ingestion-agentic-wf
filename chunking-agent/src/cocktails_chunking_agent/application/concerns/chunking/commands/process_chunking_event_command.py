@@ -6,13 +6,13 @@ from injector import inject
 from mediatr import GenericQuery, Mediator
 from opentelemetry import trace
 
+from cocktails_chunking_agent.domain.config.app_options import AppOptions
 from cocktails_chunking_agent.domain.models.cocktail_chunking_model import (
     CocktailChunkingModel,
 )
 from cocktails_chunking_agent.domain.models.cocktail_extraction_model import (
     CocktailExtractionModel,
 )
-from cocktails_chunking_agent.domain.config.app_options import AppOptions
 from cocktails_chunking_agent.infrastructure.llm.llm_content_chunker import LLMContentChunker
 
 

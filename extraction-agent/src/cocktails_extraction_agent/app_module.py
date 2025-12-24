@@ -31,7 +31,7 @@ class AppModule(Module):
         app_options = get_app_options()
 
         llm_model_options = LLMModelOptions(
-            model=app_options.model,
+            model=app_options.llm_model,
             temperature=0.0,
             num_predict=-1,
             verbose=True,

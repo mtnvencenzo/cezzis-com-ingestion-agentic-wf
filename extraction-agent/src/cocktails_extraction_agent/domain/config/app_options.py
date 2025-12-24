@@ -15,7 +15,7 @@ class AppOptions(BaseSettings):
         num_consumers (int): Number of Kafka consumer processes to start.
         max_poll_interval_ms (int): Maximum poll interval in milliseconds for Kafka consumers.
         auto_offset_reset (str): Auto offset reset policy for Kafka consumers.
-        model (str): LLM model to use for extraction.
+        llm_model (str): LLM model to use for extraction.
     """
 
     model_config = SettingsConfigDict(
@@ -28,7 +28,7 @@ class AppOptions(BaseSettings):
     results_topic_name: str = Field(default="", validation_alias="EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME")
     max_poll_interval_ms: int = Field(default=300000, validation_alias="EXTRACTION_AGENT_KAFKA_MAX_POLL_INTERVAL_MS")
     auto_offset_reset: str = Field(default="earliest", validation_alias="EXTRACTION_AGENT_KAFKA_AUTO_OFFSET_RESET")
-    model: str = Field(default="", validation_alias="EXTRACTION_AGENT_MODEL")
+    llm_model: str = Field(default="", validation_alias="EXTRACTION_AGENT_LLM_MODEL")
     use_llm: bool = Field(default=False, validation_alias="EXTRACTION_AGENT_USE_LLM")
 
 
@@ -54,8 +54,8 @@ def get_app_options() -> AppOptions:
             raise ValueError("EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME environment variable is required")
         if not _app_options.num_consumers or _app_options.num_consumers < 1:
             raise ValueError("EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS environment variable must be a positive integer")
-        if not _app_options.model:
-            raise ValueError("EXTRACTION_AGENT_MODEL environment variable is required")
+        if not _app_options.llm_model:
+            raise ValueError("EXTRACTION_AGENT_LLM_MODEL environment variable is required")
         if _app_options.auto_offset_reset not in ("earliest", "latest", "none"):
             raise ValueError(
                 "EXTRACTION_AGENT_KAFKA_AUTO_OFFSET_RESET environment variable must be one of: earliest, latest, none"

@@ -20,6 +20,7 @@ from cocktails_chunking_agent.infrastructure.eventing.chunking_event_receiver im
 from cocktails_chunking_agent.infrastructure.llm.llm_content_chunker import LLMContentChunker
 from cocktails_chunking_agent.infrastructure.llm.ollama_llm_factory import OllamaLLMFactory
 
+
 def create_injector() -> Injector:
     return Injector([AppModule()])
 
