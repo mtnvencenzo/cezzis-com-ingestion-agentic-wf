@@ -5,9 +5,9 @@ from typing import Any, Dict, Generator
 import pytest
 from pytest_mock import MockerFixture
 
-from cocktails_embedding_agent.domain.config.emb_agent_options import (
-    EmbeddingAgentOptions,
-    get_emb_agent_options,
+from cocktails_embedding_agent.domain.config.app_options import (
+    AppOptions,
+    get_app_options,
 )
 
 from .test_fixtures import (  # type: ignore[import]
@@ -16,7 +16,7 @@ from .test_fixtures import (  # type: ignore[import]
 )
 
 
-class TestEmbeddingAgentOptions:
+class TestAppOptions:
     @pytest.mark.usefixtures("clear_settings_cache")
     def test_emb_agent_settings_loads_from_environment_variables(
         self,
@@ -27,7 +27,7 @@ class TestEmbeddingAgentOptions:
         mocker.patch.dict("os.environ", mock_env_vars)
         mocker.patch("builtins.print")
 
-        options_instance = get_emb_agent_options()
+        options_instance = get_app_options()
 
         assert options_instance.consumer_topic_name == "test-topic-emb"
         assert options_instance.num_consumers == 1
@@ -47,7 +47,7 @@ class TestEmbeddingAgentOptions:
         )
 
         with pytest.raises(ValueError, match="EMBEDDING_AGENT_KAFKA_TOPIC_NAME.*required"):
-            get_emb_agent_options()
+            get_app_options()
 
     @pytest.mark.usefixtures("clear_settings_cache")
     @pytest.mark.parametrize("num_consumers", ["0", "-1"])
@@ -68,7 +68,7 @@ class TestEmbeddingAgentOptions:
         )
 
         with pytest.raises(ValueError, match="EMBEDDING_AGENT_KAFKA_NUM_CONSUMERS.*positive integer"):
-            get_emb_agent_options()
+            get_app_options()
 
     @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_with_env_file(
@@ -92,7 +92,7 @@ class TestEmbeddingAgentOptions:
         os.chdir(tmp_path)
 
         try:
-            settings = EmbeddingAgentOptions()
+            settings = AppOptions()
 
             assert settings.enabled is True
             assert settings.consumer_topic_name == "file-topic-emb"
@@ -111,6 +111,6 @@ class TestEmbeddingAgentOptions:
         mocker.patch("builtins.print")
 
         # Verify the model has the expected configuration
-        assert EmbeddingAgentOptions.model_config is not None
-        assert "env_file" in EmbeddingAgentOptions.model_config
-        assert EmbeddingAgentOptions.model_config.get("env_file_encoding") == "utf-8"
+        assert AppOptions.model_config is not None
+        assert "env_file" in AppOptions.model_config
+        assert AppOptions.model_config.get("env_file_encoding") == "utf-8"

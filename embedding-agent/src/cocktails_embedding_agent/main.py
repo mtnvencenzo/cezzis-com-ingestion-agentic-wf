@@ -2,13 +2,14 @@ import asyncio
 import logging
 import sys
 
-# from mediatr import Mediator
-# from cocktails_embedding_agent.app_module import injector
+from mediatr import Mediator
+
+from cocktails_embedding_agent.app_module import injector
 from cocktails_embedding_agent.application import initialize_opentelemetry
 from cocktails_embedding_agent.application.behaviors.exception_handling.global_exception_handler import (
     global_exception_handler,
 )
-from cocktails_embedding_agent.application.concerns.embedding.emb_agent_runner import run_embedding_agent
+from cocktails_embedding_agent.application.concerns.embedding import RunEmbeddingAgentCommand
 
 sys.excepthook = global_exception_handler
 
@@ -23,8 +24,10 @@ async def main():
     logger = logging.getLogger("main")
     logger.info("Starting cocktails ingestion embedding agent...")
 
+    mediator = injector.get(Mediator)
+
     try:
-        await asyncio.gather(run_embedding_agent())
+        await mediator.send_async(RunEmbeddingAgentCommand())
     except asyncio.CancelledError:
         logger.info("Application cancelled")
     except Exception as e:

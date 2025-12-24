@@ -21,7 +21,7 @@ class RunExtractionAgentCommandHandler:
 
     @inject
     def __init__(self, app_options: AppOptions, kafka_options: KafkaOptions) -> None:
-        self.logger = logging.getLogger("create_kafka_command_handler")
+        self.logger = logging.getLogger("run_extraction_agent_command_handler")
         self.app_options = app_options
         self.kafka_options = kafka_options
 

@@ -5,7 +5,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class QDrantOptions(BaseSettings):
+class QdrantOptions(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=(".env", f".env.{os.environ.get('ENV')}"), env_file_encoding="utf-8", extra="allow"
     )
@@ -20,18 +20,18 @@ class QDrantOptions(BaseSettings):
 
 _logger: logging.Logger = logging.getLogger("qdrant_options")
 
-_qdrant_options: QDrantOptions | None = None
+_qdrant_options: QdrantOptions | None = None
 
 
-def get_qdrant_options() -> QDrantOptions:
-    """Get the singleton instance of QDrantOptions.
+def get_qdrant_options() -> QdrantOptions:
+    """Get the singleton instance of QdrantOptions.
 
     Returns:
-        QDrantOptions: The QDrant options instance.
+        QdrantOptions: The Qdrant options instance.
     """
     global _qdrant_options
     if _qdrant_options is None:
-        _qdrant_options = QDrantOptions()
+        _qdrant_options = QdrantOptions()
 
         # Validate required configuration
         if not _qdrant_options.host:
@@ -43,7 +43,7 @@ def get_qdrant_options() -> QDrantOptions:
         if not _qdrant_options.vector_size or _qdrant_options.vector_size <= 0:
             raise ValueError("QDRANT_VECTOR_SIZE environment variable is required")
 
-        _logger.info("QDrant options loaded successfully.")
+        _logger.info("Qdrant options loaded successfully.")
 
     return _qdrant_options
 
