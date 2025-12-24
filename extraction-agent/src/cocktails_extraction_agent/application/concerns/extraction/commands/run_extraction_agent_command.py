@@ -8,10 +8,12 @@ from cocktails_extraction_agent.domain.config.app_options import AppOptions
 from cocktails_extraction_agent.domain.config.kafka_options import KafkaOptions
 from cocktails_extraction_agent.infrastructure.eventing.extraction_event_receiver import ExtractionEventReceiver
 
+
 class RunExtractionAgentCommand(GenericQuery[bool]):
     """Command to run the extraction agent"""
 
     pass
+
 
 @Mediator.handler
 class RunExtractionAgentCommandHandler:

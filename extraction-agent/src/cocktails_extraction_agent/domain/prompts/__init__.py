@@ -1,4 +1,4 @@
-from cocktails_extraction_agent.application.prompts.extraction_prompts import (
+from cocktails_extraction_agent.domain.prompts.extraction_prompts import (
     extraction_sys_prompt,
     extraction_user_prompt,
 )

@@ -14,6 +14,7 @@ from cocktails_extraction_agent.domain.config.kafka_producer_settings import get
 from cocktails_extraction_agent.domain.config.llm_model_options import LLMModelOptions
 from cocktails_extraction_agent.domain.config.llm_options import LLMOptions, get_llm_options
 from cocktails_extraction_agent.infrastructure.eventing import ExtractionEventReceiver
+from cocktails_extraction_agent.infrastructure.llm.llm_content_cleaner import LLMContentCleaner
 from cocktails_extraction_agent.infrastructure.llm.ollama_llm_factory import OllamaLLMFactory
 
 
@@ -48,6 +49,7 @@ class AppModule(Module):
         binder.bind(ExtractionEventReceiver, ExtractionEventReceiver, scope=noscope)
         binder.bind(KafkaProducer, KafkaProducer(get_kafka_producer_settings()), scope=singleton)
         binder.bind(OllamaLLMFactory, OllamaLLMFactory, scope=singleton)
+        binder.bind(LLMContentCleaner, LLMContentCleaner, scope=singleton)
 
 
 injector = create_injector()

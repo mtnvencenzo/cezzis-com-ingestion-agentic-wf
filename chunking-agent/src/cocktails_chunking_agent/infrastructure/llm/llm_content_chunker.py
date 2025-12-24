@@ -6,14 +6,14 @@ from langchain.agents import create_agent
 from langchain_core.messages import BaseMessage
 from langfuse.langchain import CallbackHandler
 
-from cocktails_chunking_agent.application.concerns.chunking.models.cocktail_chunking_model import (
+from cocktails_chunking_agent.domain.config.llm_model_options import LLMModelOptions
+from cocktails_chunking_agent.domain.models.cocktail_chunking_model import (
     CocktailDescriptionChunk,
 )
-from cocktails_chunking_agent.application.prompts.chunking_prompts import (
+from cocktails_chunking_agent.domain.prompts.chunking_prompts import (
     chunking_sys_prompt,
     chunking_user_prompt,
 )
-from cocktails_chunking_agent.domain.config.llm_model_options import LLMModelOptions
 from cocktails_chunking_agent.infrastructure.llm.ollama_llm_factory import OllamaLLMFactory
 
 
@@ -25,7 +25,7 @@ class LLMContentChunker:
         """Initialize the LLMContentChunker with LLM options and model settings.
 
         Args:
-            llm_options (LLMOptions): The LLM options for configuration.
+            ollama_llm_factory (OllamaLLMFactory): The factory to create Ollama LLM instances.
             model_options (LLMModelOptions): The model settings for configuration.
         """
         self.llm = ollama_llm_factory.get_ollama_chat(name=f"chunk_content [{llm_model_options.model}]")
@@ -34,7 +34,7 @@ class LLMContentChunker:
         self.langfuse_handler = CallbackHandler(update_trace=True)
 
     async def chunk_content(self, extraction_text: str) -> List[CocktailDescriptionChunk] | None:
-        """Convet exracted plain text content into chunks using LLM.
+        """Convert exracted plain text content into chunks using LLM.
 
         Args:
             extraction_text (str): The extracted plain text content to chunk.
@@ -46,10 +46,7 @@ class LLMContentChunker:
         agent_result = await self.agent.ainvoke(
             {
                 "messages": [
-                    {
-                        "role": "system",
-                        "content": chunking_sys_prompt
-                    },
+                    {"role": "system", "content": chunking_sys_prompt},
                     {
                         "role": "user",
                         "content": chunking_user_prompt.format(input_text=extraction_text),

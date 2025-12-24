@@ -17,26 +17,8 @@ from cocktails_chunking_agent.domain.config import (
     get_llm_options,
 )
 from cocktails_chunking_agent.infrastructure.eventing.chunking_event_receiver import ChunkingEventReceiver
+from cocktails_chunking_agent.infrastructure.llm.llm_content_chunker import LLMContentChunker
 from cocktails_chunking_agent.infrastructure.llm.ollama_llm_factory import OllamaLLMFactory
-
-# from cocktails_chunking_agent.application.concerns import (
-#     CreateBlobStorageCommandHandler,
-#     CreateCosmosDbCommandHandler,
-#     CreateKafkaCommandHandler,
-# )
-# from cocktails_chunking_agent.domain.config import (
-#     KafkaOptions,
-#     get_kafka_options,
-# )
-# from cocktails_chunking_agent.infrastructure.services import (
-#     AzureBlobService,
-#     CosmosDbService,
-#     IAzureBlobService,
-#     ICosmosDbService,
-#     IKafkaService,
-#     KafkaService,
-# )
-
 
 def create_injector() -> Injector:
     return Injector([AppModule()])
@@ -69,6 +51,7 @@ class AppModule(Module):
         binder.bind(ChunkingEventReceiver, ChunkingEventReceiver, scope=noscope)
         binder.bind(KafkaProducer, KafkaProducer(get_kafka_producer_settings()), scope=singleton)
         binder.bind(OllamaLLMFactory, OllamaLLMFactory, scope=singleton)
+        binder.bind(LLMContentChunker, LLMContentChunker, scope=singleton)
 
 
 injector = create_injector()

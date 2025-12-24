@@ -10,7 +10,7 @@ from opentelemetry import trace
 from cocktails_chunking_agent.application.concerns.chunking.commands.process_chunking_event_command import (
     ProcessChunkingEventCommand,
 )
-from cocktails_chunking_agent.application.concerns.chunking.models.cocktail_extraction_model import (
+from cocktails_chunking_agent.domain.models.cocktail_extraction_model import (
     CocktailExtractionModel,
 )
 from cocktails_chunking_agent.domain.base_agent_evt_receiver import BaseAgentEventReceiver

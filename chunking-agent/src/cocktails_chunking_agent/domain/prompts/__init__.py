@@ -1,4 +1,4 @@
-from cocktails_chunking_agent.application.prompts.chunking_prompts import (
+from cocktails_chunking_agent.domain.prompts.chunking_prompts import (
     chunking_sys_prompt,
     chunking_user_prompt,
 )

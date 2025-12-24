@@ -3,12 +3,15 @@ import logging
 import sys
 
 from mediatr import Mediator
+
 from cocktails_extraction_agent.app_module import injector
 from cocktails_extraction_agent.application import initialize_opentelemetry
 from cocktails_extraction_agent.application.behaviors.exception_handling.global_exception_handler import (
     global_exception_handler,
 )
-from cocktails_extraction_agent.application.concerns.extraction.commands.run_extraction_agent_command import RunExtractionAgentCommand
+from cocktails_extraction_agent.application.concerns.extraction.commands.run_extraction_agent_command import (
+    RunExtractionAgentCommand,
+)
 
 sys.excepthook = global_exception_handler
 
