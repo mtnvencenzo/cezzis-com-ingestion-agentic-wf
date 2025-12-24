@@ -1,3 +1,13 @@
-from cocktails_chunking_agent.application.concerns.chunking import run_chunking_agent
+from cocktails_chunking_agent.application.concerns.chunking import (
+    ProcessChunkingEventCommand,
+    ProcessChunkingEventCommandHandler,
+    RunChunkingAgentCommand,
+    RunChunkingAgentCommandHandler,
+)
 
-__all__ = ["run_chunking_agent"]
+__all__ = [
+    "RunChunkingAgentCommand",
+    "RunChunkingAgentCommandHandler",
+    "ProcessChunkingEventCommand",
+    "ProcessChunkingEventCommandHandler",
+]

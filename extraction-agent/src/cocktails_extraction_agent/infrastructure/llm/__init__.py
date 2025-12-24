@@ -1,3 +1,3 @@
-from cocktails_extraction_agent.infrastructure.llm.ollama_utils import get_ollama_model_client
+from cocktails_extraction_agent.infrastructure.llm.ollama_llm_factory import OllamaLLMFactory
 
-__all__ = ["get_ollama_model_client"]
+__all__ = ["OllamaLLMFactory"]

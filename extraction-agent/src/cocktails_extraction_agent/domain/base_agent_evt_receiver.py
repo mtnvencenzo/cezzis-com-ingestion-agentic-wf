@@ -14,8 +14,8 @@ class BaseAgentEventReceiver(IAsyncKafkaMessageProcessor):
     def __init__(self, kafka_consumer_settings: KafkaConsumerSettings) -> None:
         super().__init__()
 
-        self._logger: logging.Logger = logging.getLogger("base_agent_event_receiver")
-        self._kafka_consumer_settings = kafka_consumer_settings
+        self.logger: logging.Logger = logging.getLogger("base_agent_event_receiver")
+        self.kafka_consumer_settings = kafka_consumer_settings
 
     def kafka_settings(self) -> KafkaConsumerSettings:
         """Get the Kafka consumer settings.
@@ -25,7 +25,7 @@ class BaseAgentEventReceiver(IAsyncKafkaMessageProcessor):
         Returns:
             KafkaConsumerSettings: The Kafka consumer settings.
         """
-        return self._kafka_consumer_settings
+        return self.kafka_consumer_settings
 
     async def consumer_creating(self) -> None:
         pass
@@ -70,7 +70,7 @@ class BaseAgentEventReceiver(IAsyncKafkaMessageProcessor):
                     try:
                         carrier[key] = value.decode("utf-8")
                     except UnicodeDecodeError:
-                        self._logger.warning(f"Failed to decode header '{key}' as UTF-8, skipping")
+                        self.logger.warning(f"Failed to decode header '{key}' as UTF-8, skipping")
 
         # Extract parent context and create a span as a child of the API trace
         parent_context = extract(carrier)
@@ -129,9 +129,8 @@ class BaseAgentEventReceiver(IAsyncKafkaMessageProcessor):
             Mapping[str, object]: A dictionary of Kafka message attributes.
         """
         return {
-            "messaging.kafka.consumer_id": self._kafka_consumer_settings.consumer_id,
-            "messaging.kafka.bootstrap_servers": self._kafka_consumer_settings.bootstrap_servers,
-            "messaging.kafka.consumer_group": self._kafka_consumer_settings.consumer_group,
-            "messaging.kafka.topic_name": self._kafka_consumer_settings.topic_name,
+            "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
+            "messaging.kafka.consumer_group": self.kafka_consumer_settings.consumer_group,
+            "messaging.kafka.topic_name": self.kafka_consumer_settings.topic_name,
             "messaging.kafka.partition": msg.partition(),
         }

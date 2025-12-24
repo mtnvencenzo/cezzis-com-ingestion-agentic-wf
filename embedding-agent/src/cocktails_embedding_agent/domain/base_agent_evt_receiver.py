@@ -129,7 +129,6 @@ class BaseAgentEventReceiver(IAsyncKafkaMessageProcessor):
             Mapping[str, object]: A dictionary of Kafka message attributes.
         """
         return {
-            "messaging.kafka.consumer_id": self._kafka_consumer_settings.consumer_id,
             "messaging.kafka.bootstrap_servers": self._kafka_consumer_settings.bootstrap_servers,
             "messaging.kafka.consumer_group": self._kafka_consumer_settings.consumer_group,
             "messaging.kafka.topic_name": self._kafka_consumer_settings.topic_name,
