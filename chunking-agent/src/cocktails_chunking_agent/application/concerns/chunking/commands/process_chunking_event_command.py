@@ -71,7 +71,7 @@ class ProcessChunkingEventCommandHandler:
                 msg="No chunks were created from cocktail extraction text, skipping sending to embedding topic",
                 extra={
                     "cocktail_id": command.model.cocktail_model.id,
-                    "ingestion.state": "chunking-no-chunks-created",
+                    "cocktail_ingestion_state": "chunking-failed",
                 },
             )
             return False
