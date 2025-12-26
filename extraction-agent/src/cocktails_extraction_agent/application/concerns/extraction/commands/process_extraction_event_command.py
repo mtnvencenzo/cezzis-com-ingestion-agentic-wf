@@ -11,6 +11,7 @@ from cocktails_extraction_agent.domain.models.cocktail_extraction_model import (
     CocktailExtractionModel,
 )
 from cocktails_extraction_agent.domain.tools import remove_emojis, remove_html_tags, remove_markdown
+from cocktails_extraction_agent.domain.tools.json_special_char_remover.json_special_char_remover import remove_special_json_characters
 from cocktails_extraction_agent.infrastructure.clients.cocktails_api.cocktail_api import CocktailModel
 from cocktails_extraction_agent.infrastructure.llm.llm_content_cleaner import LLMContentCleaner
 
@@ -62,6 +63,7 @@ class ProcessExtractionEventCommandHandler:
             result_content = await remove_markdown.ainvoke(command.model.content or "")
             result_content = await remove_html_tags.ainvoke(result_content or "")
             result_content = await remove_emojis.ainvoke(result_content or "")
+            result_content = await remove_special_json_characters.ainvoke(result_content or "")
         else:
             result_content = await self.llm_content_cleaner.clean_content(command.model.content or "")
 
