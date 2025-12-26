@@ -83,9 +83,10 @@ class ChunkingEventReceiver(BaseAgentEventReceiver):
                             extra={
                                 **super().get_kafka_attributes(msg),
                                 **{
-                                    "cocktail.id": extraction_model.cocktail_model.id
+                                    "cocktail_id": extraction_model.cocktail_model.id
                                     if extraction_model.cocktail_model
-                                    else "unknown"
+                                    else "unknown",
+                                    "cocktail_ingestion_state": "chunking-failed",
                                 },
                             },
                         )
@@ -111,9 +112,10 @@ class ChunkingEventReceiver(BaseAgentEventReceiver):
                             extra={
                                 **super().get_kafka_attributes(msg),
                                 **{
-                                    "cocktail.id": extraction_model.cocktail_model.id
+                                    "cocktail_id": extraction_model.cocktail_model.id
                                     if extraction_model.cocktail_model
-                                    else "unknown"
+                                    else "unknown",
+                                    "cocktail_ingestion_state": "chunking-failed",
                                 },
                                 "error": str(e),
                             },
@@ -122,7 +124,12 @@ class ChunkingEventReceiver(BaseAgentEventReceiver):
                 else:
                     self._logger.warning(
                         msg="Received cocktail chunking message with no value",
-                        extra={**super().get_kafka_attributes(msg)},
+                        extra={
+                            **super().get_kafka_attributes(msg),
+                            **{
+                                "cocktail_ingestion_state": "chunking-failed",
+                            },
+                        },
                     )
             except Exception as e:
                 self._logger.exception(
@@ -130,6 +137,7 @@ class ChunkingEventReceiver(BaseAgentEventReceiver):
                     extra={
                         **super().get_kafka_attributes(msg),
                         "error": str(e),
+                        "cocktail_ingestion_state": "chunking-failed",
                     },
                 )
 

@@ -1,13 +1,14 @@
 import json
 import logging
+import time
 from typing import Any, List, cast
 
 from injector import inject
 from langchain.agents import create_agent
-from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage, AIMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langfuse.langchain import CallbackHandler
 
-from cocktails_chunking_agent.domain.config.llm_model_options import LLMModelOptions
+from cocktails_chunking_agent.domain.config import AppOptions, LLMModelOptions
 from cocktails_chunking_agent.domain.models.cocktail_chunking_model import (
     CocktailDescriptionChunk,
 )
@@ -22,7 +23,9 @@ class LLMContentChunker:
     """A markdown to text converter using an LLM model."""
 
     @inject
-    def __init__(self, ollama_llm_factory: OllamaLLMFactory, llm_model_options: LLMModelOptions) -> None:
+    def __init__(
+        self, ollama_llm_factory: OllamaLLMFactory, llm_model_options: LLMModelOptions, app_options: AppOptions
+    ) -> None:
         """Initialize the LLMContentChunker with LLM options and model settings.
 
         Args:
@@ -34,8 +37,9 @@ class LLMContentChunker:
         self.llm_timeout = llm_model_options.timeout_seconds or 60
         self.langfuse_handler = CallbackHandler(update_trace=True)
         self._logger = logging.getLogger("llm_content_chunker")
+        self._app_options = app_options
 
-    async def chunk_content(self, extraction_text: str) -> List[CocktailDescriptionChunk] | None:
+    async def chunk_content(self, cocktail_id: str, extraction_text: str) -> List[CocktailDescriptionChunk] | None:
         """Convert exracted plain text content into chunks using LLM.
 
         Args:
@@ -64,21 +68,19 @@ class LLMContentChunker:
             return None
 
         try:
-            with open("/home/mtnvencenzo/llm_content_chunker_output.json", 'w') as f:
-                f.write(result_content)
-
             array_result = json.loads(result_content)
-
             return [CocktailDescriptionChunk(**item) for item in array_result]
         except json.JSONDecodeError as e:
-            self._logger.info("Initial JSON parsing failed, attempting to fix the output.")
-
+            self._logger.warning(
+                "Initial JSON parsing failed, attempting to fix the output.",
+                extra={"error": str(e), "cocktail_id": cocktail_id},
+            )
             # Attempt to fix the output by asking the agent to correct its response, including the error message
             fix_prompt = (
                 "The previous response was not valid JSON. "
                 "Please return only a valid JSON array as specified in the original instructions. "
                 f"\n\nError details: {str(e)}"
-                f"\n\nHere is your previous response: \n\n{result_content}"
+                f"\n\nHere is your previous json response, please fix this json and return only the fixed json array according to the original instructions: \n\n{result_content}"
             )
             agent_messages.append(AIMessage(content=result_content))
             agent_messages.append(HumanMessage(content=fix_prompt))
@@ -91,11 +93,16 @@ class LLMContentChunker:
             result_content_retry = self._parse_agent_result(agent_result_retry)
             if not result_content_retry:
                 return None
- 
-            array_result = json.loads(result_content_retry)
-            return [CocktailDescriptionChunk(**item) for item in array_result]
 
-        
+            try:
+                array_result = json.loads(result_content_retry)
+                return [CocktailDescriptionChunk(**item) for item in array_result]
+            except:
+                self._log_content_json(cocktail_id, result_content_retry)
+                raise
+        except:
+            self._log_content_json(cocktail_id, result_content)
+            raise
 
     def _parse_agent_result(self, agent_result: dict[str, Any] | Any) -> str | None:
         result_list = cast(list[BaseMessage], agent_result["messages"])
@@ -108,5 +115,21 @@ class LLMContentChunker:
             return "\n".join(s if isinstance(s, str) else json.dumps(s) for s in result_content)
         elif not isinstance(result_content, str):
             return str(result_content)
-        
+
         return result_content
+
+    def _log_content_json(self, cocktail_id: str, result_content: str) -> None:
+        """Logs the content JSON in chunks to avoid exceeding log size limits."""
+
+        if self._app_options.log_dir:
+            epoch = int(time.time())
+            output_path = f"{self._app_options.log_dir}/{cocktail_id}-{epoch}.json"
+
+            try:
+                with open(output_path, "w") as f:
+                    f.write(result_content)
+            except Exception as e:
+                self._logger.error(
+                    "Failed to write chunking output to file.",
+                    extra={"error": str(e)},
+                )

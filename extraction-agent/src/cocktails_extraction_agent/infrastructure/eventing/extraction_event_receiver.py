@@ -127,18 +127,29 @@ class ExtractionEventReceiver(BaseAgentEventReceiver):
                                 extra={
                                     **super().get_kafka_attributes(msg),
                                     "error": str(e),
+                                    "cocktail_id": cocktail_id,
+                                    "cocktail_ingestion_state": "extraction-failed",
                                 },
                             )
                             continue
                 else:
                     self.logger.warning(
                         msg="Received cocktail extraction message with no value",
-                        extra={**super().get_kafka_attributes(msg)},
+                        extra={
+                            **super().get_kafka_attributes(msg),
+                            **{
+                                "cocktail_ingestion_state": "extraction-failed",
+                            },
+                        },
                     )
-            except Exception:
+            except Exception as e:
                 self.logger.exception(
                     msg="Error processing cocktail extraction message",
-                    extra={**super().get_kafka_attributes(msg)},
+                    extra={
+                        **super().get_kafka_attributes(msg),
+                        "error": str(e),
+                        "cocktail_ingestion_state": "extraction-failed",
+                    },
                 )
 
     async def _process_message(self, model: CocktailModel) -> None:

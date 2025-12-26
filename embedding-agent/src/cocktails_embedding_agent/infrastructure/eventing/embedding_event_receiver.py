@@ -82,9 +82,10 @@ class EmbeddingEventReceiver(BaseAgentEventReceiver):
                             extra={
                                 **super().get_kafka_attributes(msg),
                                 **{
-                                    "cocktail.id": chunking_model.cocktail_model.id
+                                    "cocktail_id": chunking_model.cocktail_model.id
                                     if chunking_model.cocktail_model
-                                    else "unknown"
+                                    else "unknown",
+                                    "cocktail_ingestion_state": "embedding-failed",
                                 },
                             },
                         )
@@ -106,9 +107,10 @@ class EmbeddingEventReceiver(BaseAgentEventReceiver):
                             extra={
                                 **super().get_kafka_attributes(msg),
                                 **{
-                                    "cocktail.id": chunking_model.cocktail_model.id
+                                    "cocktail_id": chunking_model.cocktail_model.id
                                     if chunking_model.cocktail_model
-                                    else "unknown"
+                                    else "unknown",
+                                    "cocktail_ingestion_state": "embedding-failed",
                                 },
                                 "error": str(e),
                             },
@@ -116,7 +118,12 @@ class EmbeddingEventReceiver(BaseAgentEventReceiver):
                 else:
                     self._logger.warning(
                         msg="Received cocktail embedding message with no value",
-                        extra={**super().get_kafka_attributes(msg)},
+                        extra={
+                            **super().get_kafka_attributes(msg),
+                            **{
+                                "cocktail_ingestion_state": "embedding-failed",
+                            },
+                        },
                     )
             except Exception as e:
                 self._logger.exception(
@@ -124,6 +131,7 @@ class EmbeddingEventReceiver(BaseAgentEventReceiver):
                     extra={
                         **super().get_kafka_attributes(msg),
                         "error": str(e),
+                        "cocktail_ingestion_state": "embedding-failed",
                     },
                 )
 

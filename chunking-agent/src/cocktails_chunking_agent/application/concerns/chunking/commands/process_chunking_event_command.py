@@ -57,19 +57,21 @@ class ProcessChunkingEventCommandHandler:
         self.logger.info(
             msg="Processing cocktail chunking message item",
             extra={
-                "cocktail.id": command.model.cocktail_model.id,
+                "cocktail_id": command.model.cocktail_model.id,
             },
         )
 
         chunks = await self.llm_content_chunker.chunk_content(
-            command.model.extraction_text,
+            cocktail_id=command.model.cocktail_model.id,
+            extraction_text=command.model.extraction_text,
         )
 
         if not chunks or len(chunks) == 0:
             self.logger.warning(
                 msg="No chunks were created from cocktail extraction text, skipping sending to embedding topic",
                 extra={
-                    "cocktail.id": command.model.cocktail_model.id,
+                    "cocktail_id": command.model.cocktail_model.id,
+                    "ingestion.state": "chunking-no-chunks-created",
                 },
             )
             return False
@@ -79,7 +81,7 @@ class ProcessChunkingEventCommandHandler:
             extra={
                 "messaging.kafka.bootstrap_servers": self.kafka_consiumer_settings.bootstrap_servers,
                 "messaging.kafka.topic_name": self.app_options.results_topic_name,
-                "cocktail.id": command.model.cocktail_model.id,
+                "cocktail_id": command.model.cocktail_model.id,
             },
         )
 
@@ -94,6 +96,16 @@ class ProcessChunkingEventCommandHandler:
             message=chunking_model.as_serializable_json(),
             headers=get_propagation_headers(),
             timeout=30.0,
+        )
+
+        self.logger.info(
+            msg="Cocktail chunking succeeded",
+            extra={
+                "messaging.kafka.bootstrap_servers": self.kafka_consiumer_settings.bootstrap_servers,
+                "messaging.kafka.topic_name": self.app_options.results_topic_name,
+                "cocktail_id": command.model.cocktail_model.id,
+                "cocktail_ingestion_state": "chunking-succeeded",
+            },
         )
 
         return True

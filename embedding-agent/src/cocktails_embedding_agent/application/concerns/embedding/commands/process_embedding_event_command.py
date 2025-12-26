@@ -64,7 +64,7 @@ class ProcessEmbeddingEventCommandHandler:
         self.logger.info(
             msg="Processing cocktail embedding message item",
             extra={
-                "cocktail.id": command.model.cocktail_model.id,
+                "cocktail_id": command.model.cocktail_model.id,
             },
         )
 
@@ -73,7 +73,7 @@ class ProcessEmbeddingEventCommandHandler:
             self.logger.warning(
                 msg="No valid chunks to embed for cocktail, skipping embedding process",
                 extra={
-                    "cocktail.id": command.model.cocktail_model.id,
+                    "cocktail_id": command.model.cocktail_model.id,
                 },
             )
             return False
@@ -106,7 +106,7 @@ class ProcessEmbeddingEventCommandHandler:
             extra={
                 "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
                 "messaging.kafka.topic_name": self.app_options.consumer_topic_name,
-                "cocktail.id": command.model.cocktail_model.id,
+                "cocktail_id": command.model.cocktail_model.id,
             },
         )
 
@@ -122,7 +122,7 @@ class ProcessEmbeddingEventCommandHandler:
             extra={
                 "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
                 "messaging.kafka.topic_name": self.app_options.consumer_topic_name,
-                "cocktail.id": command.model.cocktail_model.id,
+                "cocktail_id": command.model.cocktail_model.id,
             },
         )
 
@@ -140,20 +140,15 @@ class ProcessEmbeddingEventCommandHandler:
         )
 
         if len(result) == 0:
-            self.logger.warning(
-                msg="No embedding results returned",
-                extra={
-                    "cocktail.id": command.model.cocktail_model.id,
-                },
-            )
-            return False
+            raise ValueError("No embedding results returned from vector store")
 
         self.logger.info(
-            msg="Ccocktail embedding result successfully stored in vector database",
+            msg="Cocktail embedding succeeded",
             extra={
                 "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
                 "messaging.kafka.topic_name": self.app_options.consumer_topic_name,
-                "cocktail.id": command.model.cocktail_model.id,
+                "cocktail_id": command.model.cocktail_model.id,
+                "cocktail_ingestion_state": "embedding-succeeded",
             },
         )
 
