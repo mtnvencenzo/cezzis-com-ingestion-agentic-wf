@@ -16,8 +16,8 @@ AVAILABLE CATEGORIES:
 CONTENT RULES:
 1. Copy sentences verbatim - do not modify, summarize, or add new content
 2. All original content must appear in exactly one category
-4. Each content field must contain NO MORE than 350 tokens to ensure database compatibility
-5. If a category's content exceeds 350 tokens, split it into logical chunks and create multiple entries for that category with "_part1", "_part2" suffixes (e.g., "famous_references_part1", "famous_references_part2")
+3. Each content field must contain NO MORE than 350 tokens to ensure database compatibility
+4. If a category's content exceeds 350 tokens, split it into logical chunks and create multiple entries for that category with "_part1", "_part2" suffixes (e.g., "famous_references_part1", "famous_references_part2")
 
 JSON OUTPUT FORMAT - CRITICAL:
 You MUST output ONLY a valid JSON array. Follow these rules EXACTLY:

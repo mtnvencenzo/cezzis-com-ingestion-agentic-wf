@@ -26,4 +26,4 @@ async def remove_special_json_characters(text: str) -> str | None:
         return result
 
     except Exception as e:
-        raise RuntimeError(f"An error occurred while removing special hjson characters: {e}") from e
+        raise RuntimeError(f"An error occurred while removing special json characters: {e}") from e
