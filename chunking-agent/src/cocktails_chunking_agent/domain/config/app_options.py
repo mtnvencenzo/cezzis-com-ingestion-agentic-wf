@@ -16,6 +16,7 @@ class AppOptions(BaseSettings):
         max_poll_interval_ms (int): Maximum poll interval in milliseconds.
         auto_offset_reset (str): Kafka auto offset reset policy.
         llm_model (str): The LLM model to use for chunking.
+        log_dir (str): Directory to store log files.
     """
 
     model_config = SettingsConfigDict(
@@ -29,6 +30,7 @@ class AppOptions(BaseSettings):
     auto_offset_reset: str = Field(default="earliest", validation_alias="CHUNKING_AGENT_KAFKA_AUTO_OFFSET_RESET")
     results_topic_name: str = Field(default="", validation_alias="CHUNKING_AGENT_KAFKA_RESULTS_TOPIC_NAME")
     llm_model: str = Field(default="", validation_alias="CHUNKING_AGENT_LLM_MODEL")
+    log_dir: str = Field(default="", validation_alias="CHUNKING_AGENT_LOG_DIR")
 
 
 _logger: logging.Logger = logging.getLogger("app_options")

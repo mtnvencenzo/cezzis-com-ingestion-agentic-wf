@@ -11,7 +11,12 @@ from cocktails_extraction_agent.domain.prompts.extraction_prompts import (
     extraction_sys_prompt,
     extraction_user_prompt,
 )
-from cocktails_extraction_agent.domain.tools import remove_emojis, remove_html_tags, remove_markdown
+from cocktails_extraction_agent.domain.tools import (
+    remove_emojis,
+    remove_html_tags,
+    remove_markdown,
+    remove_special_json_characters,
+)
 from cocktails_extraction_agent.infrastructure.llm.ollama_llm_factory import OllamaLLMFactory
 
 
@@ -25,7 +30,9 @@ class LLMContentCleaner:
             model_options (LLMModelOptions): The model settings for configuration.
         """
         self.llm = ollama_llm_factory.get_ollama_chat(name=f"clean_content [{llm_model_options.model}]")
-        self.agent = create_agent(model=self.llm, tools=[remove_markdown, remove_html_tags, remove_emojis])
+        self.agent = create_agent(
+            model=self.llm, tools=[remove_markdown, remove_html_tags, remove_emojis, remove_special_json_characters]
+        )
         self.llm_timeout = llm_model_options.timeout_seconds or 60
         self.langfuse_handler = CallbackHandler(update_trace=True)
 

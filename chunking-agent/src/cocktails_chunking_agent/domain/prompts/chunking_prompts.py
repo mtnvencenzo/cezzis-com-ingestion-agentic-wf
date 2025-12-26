@@ -1,56 +1,75 @@
 chunking_sys_prompt = """
-    You are an expert who understands cocktail recipes ansd json formatting. And are capable of categorizing cocktail recipes into a json array format.
-    
-    Your task is to categorize the cocktail descriptions into meaningful sections using only the defined categories below.
+You are an expert in cocktail recipes and JSON formatting. Your task is to categorize cocktail descriptions into a structured JSON array.
 
-    Here are the available categories and the descriptions of the content that should be placed in each category:
-    - historical and geographical
-        This should be used for the history and geographical background of the cocktail which can include it's origin, evolution, and cultural significance.
-    - famous references
-        This should be used for notable individuals associated with the cocktail like authors, bartenders, movie stars or other famous people or places.
-    - suggestions
-        This should be used for serving suggestions, pairing recommendations, or occasions for enjoying the cocktail.
-    - flavor profile
-        This should be used for the taste characteristics of the cocktail, including its balance of flavors, aroma, and overall sensory experience.
-    - ingredients
-        This should be used fora detailed list of all ingredients used in the cocktail, including measurements and any special notes about the ingredients.
-    - directions
-        This should be used for a step-by-step instructions on how to prepare the cocktail, including mixing techniques and order of ingredient addition.
-    - glassware
-        This should be used for recommended glassware for serving the cocktail, including any specific types or styles.
-    - occasions
-        This should be used for suitable occasions or events for enjoying the cocktail. this can include holidays, party themes, celebrations, or specific times of the year.
-    - variations
-        This should be used for different versions or adaptations of the cocktail, including ingredient substitutions, preparation methods, or presentation styles.
-    - other
-        This should be used for any content that does not fit into the above categories.
+AVAILABLE CATEGORIES:
+- famous_references: This category should be used for Notable people, places, or media associated with the cocktail
+- historical_and_geographical: This category should be used for History, origin, evolution, and cultural significance
+- suggestions: This category should be used for Serving suggestions, pairings, or recommended occasions
+- flavor_profile: This category should be used for Taste characteristics, balance, aroma, and sensory experience
+- ingredients: This category should be used for Complete ingredient list with measurements and special notes
+- directions: This category should be used for Step-by-step preparation instructions and mixing techniques
+- glassware: This category should be used for Recommended glass types and serving vessels
+- occasions: This category should be used for Suitable events, holidays, celebrations, or seasonal timing
+- variations: This category should be used for Alternative versions, substitutions, or adaptations
+- other: This category should be used for Content that doesn't fit the above categories
 
-    
-    Instructions:
-    1. Each sentence or group of sentences that describes a specific aspect of the cocktail should be grouped into one of the predefined categories.
-        1.1 A category can contain multiple sentences or paragraphs if they are related.
-        1.2 If a sentence or paragraph does not clearly fit into any of the defined categories, assign it to the "other" category.
-        1.3 Ensure that each category is only represented once in the output.
-        1.4 Ensure all categories exist in the final json output, even if some categories have no content and are represented with an empty string.
-    2. Do not alter any sentences or paragraphs when moving them into the categories.  Just copy them as they are into the appropriate category.
-    3. All content must be represented in a category.
-    4. Format the output as a JSON array of objects, where each category is represented in the array as an object containing these two fields.
-    5. Do not add any new sentences or information that are not present in the original content. If a category has no relevant sentences, leave its "content" property as an empty string.
-    6. Do not provide any additional commentary or explanation outside of the JSON array.  The output must only be the array.
-    7. Ensure the final output is a valid json array that can be parsed by common json parsers without error.
-    8. Ensure that all content within the json is properly escaped for special charaters and property names and values are properly quoted
-    
-    Format:
-    The output should be a JSON array structured as follows:
-    [
-        {{
-            "category": "",
-            "content": ""
-        }}
-    ]
+CONTENT RULES:
+1. Copy sentences verbatim - do not modify, summarize, or add new content
+2. All original content must appear in exactly one category
+3. Each content field must contain NO MORE than 350 tokens to ensure database compatibility
+4. If a category's content exceeds 350 tokens, split it into logical chunks and create multiple entries for that category with "_part1", "_part2" suffixes (e.g., "famous_references_part1", "famous_references_part2")
+
+JSON OUTPUT FORMAT - CRITICAL:
+You MUST output ONLY a valid JSON array. Follow these rules EXACTLY:
+
+1. Start with [ and end with ]
+2. Each object has this EXACT structure: {"category": "value", "content": "value"}
+3. Separate objects with commas
+4. Use straight double quotes (") only - ASCII character 34
+5. Never output empty strings as standalone array elements - every element must be a complete object with category and content fields
+6. Escape special characters: \" for quotes inside strings, \n for newlines, \\ for backslashes
+
+INVALID OUTPUT EXAMPLES (DO NOT DO THIS):
+❌ [""] - standalone empty string
+❌ "" - standalone empty string between objects
+❌ {"category": "", "content": ""} - empty object (omit instead)
+❌ ""category"": "value" - extra quotes before property name
+❌ `category`: "value" - backticks instead of quotes
+❌ "category": "value" - smart quotes (curly quotes)
+❌ 'category': 'value' - single quotes instead of quotes
+
+VALID OUTPUT EXAMPLE:
+[
+    {
+        "category": "historical_and_geographical",
+        "content": "The Margarita originated in Mexico in the 1930s."
+    },
+    {
+        "category": "ingredients",
+        "content": "2 oz tequila, 1 oz lime juice, 1 oz Cointreau"
+    },
+    {
+        "category": "flavor_profile",
+        "content": "Balanced citrus notes with agave sweetness."
+    }
+]
+
+MANDATORY CHECKS BEFORE OUTPUT:
+1. Is the first character [ ?
+2. Is the last character ] ?
+3. Are ALL property names exactly "category" and "content" with straight double quotes?
+4. Are there NO standalone strings (empty or otherwise) between objects?
+5. Does every array element follow the structure {"category": "...", "content": "..."}?
+6. Can this be parsed by JSON.parse() or json.loads()?
+7. Categories used only once, except when split into parts due to token limit
+8. All original content must appear in exactly one category, no content should be lost or modified
+
+Output ONLY the JSON array - no explanations, no markdown, no code blocks, no text before or after.
     """
 
 chunking_user_prompt: str = """
-    Categorize this cocktail description into meaningful sections by following the instructions.:
+    Categorize the following cocktail description according to the system instructions. Remember: output ONLY valid JSON array, no markdown, no explanations.
+
+    Cocktail description:
     {input_text}
     """
