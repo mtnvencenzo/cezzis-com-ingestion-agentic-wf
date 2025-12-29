@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List
 from uuid import NAMESPACE_DNS, uuid5
 
-from cocktails_embedding_agent.infrastructure.clients.cocktails_api.cocktail_api import CocktailModel
+from cocktails_embedding_agent.infrastructure.clients.cocktails_api.cocktails_models import CocktailModel
 
 
 @dataclass

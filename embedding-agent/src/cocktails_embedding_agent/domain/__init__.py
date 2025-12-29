@@ -1,15 +1,13 @@
 from cocktails_embedding_agent.domain.base_agent_evt_receiver import BaseAgentEventReceiver
 from cocktails_embedding_agent.domain.config import (
+    AISearchApiOptions,
     AppOptions,
-    HuggingFaceOptions,
     KafkaOptions,
     OTelOptions,
-    QdrantOptions,
+    get_aisearch_api_options,
     get_app_options,
-    get_huggingface_options,
     get_kafka_options,
     get_otel_options,
-    get_qdrant_options,
 )
 
 __all__ = [
@@ -19,9 +17,7 @@ __all__ = [
     "get_otel_options",
     "AppOptions",
     "get_app_options",
-    "HuggingFaceOptions",
-    "get_huggingface_options",
-    "QdrantOptions",
-    "get_qdrant_options",
     "BaseAgentEventReceiver",
+    "AISearchApiOptions",
+    "get_aisearch_api_options",
 ]

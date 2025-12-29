@@ -15,7 +15,7 @@ from cocktails_embedding_agent.domain.models.cocktail_chunking_model import (
     CocktailChunkingModel,
     CocktailDescriptionChunk,
 )
-from cocktails_embedding_agent.infrastructure.clients.cocktails_api.cocktail_api import CocktailModel
+from cocktails_embedding_agent.infrastructure.clients.cocktails_api.cocktails_models import CocktailModel
 
 
 class EmbeddingEventReceiver(BaseAgentEventReceiver):

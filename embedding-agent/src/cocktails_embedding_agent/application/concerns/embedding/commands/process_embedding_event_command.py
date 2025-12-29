@@ -2,17 +2,19 @@ import logging
 
 from cezzis_kafka import KafkaConsumerSettings
 from injector import inject
-from langchain_huggingface.embeddings import HuggingFaceEndpointEmbeddings
-from langchain_qdrant import QdrantVectorStore
 from mediatr import GenericQuery, Mediator
 from opentelemetry import trace
-from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, FieldCondition, Filter, MatchValue, VectorParams
 
-from cocktails_embedding_agent.domain.config import AppOptions, HuggingFaceOptions, QdrantOptions
-from cocktails_embedding_agent.domain.models.cocktail_chunking_model import (
-    CocktailChunkingModel,
+from cocktails_embedding_agent.domain.config import AppOptions
+from cocktails_embedding_agent.domain.models.cocktail_chunking_model import CocktailChunkingModel
+from cocktails_embedding_agent.infrastructure.clients.aisearch_api import aisearch_models
+from cocktails_embedding_agent.infrastructure.clients.aisearch_api.aisearch_models import (
+    CocktailDescriptionChunk,
+    CocktailEmbeddingRq,
+    CocktailModelInput,
+    IngredientModel,
 )
+from cocktails_embedding_agent.infrastructure.clients.aisearch_api.iaisearch_client import IAISearchClient
 
 
 class ProcessEmbeddingEventCommand(GenericQuery[bool]):
@@ -44,18 +46,14 @@ class ProcessEmbeddingEventCommandHandler:
         kafka_consumer_settings: KafkaConsumerSettings,
         app_options: AppOptions,
         kafka_consumer_options: KafkaConsumerSettings,
-        hugging_face_options: HuggingFaceOptions,
-        qdrant_client: QdrantClient,
-        qdrant_options: QdrantOptions,
+        aisearch_client: IAISearchClient,
     ) -> None:
         self.kafka_consiumer_settings = kafka_consumer_options
         self.app_options = app_options
         self.logger = logging.getLogger("process_embedding_event_command_handler")
         self.tracer = trace.get_tracer("embedding_agent")
-        self.qdrant_client = qdrant_client
-        self.hugging_face_options = hugging_face_options
-        self.qdrant_options = qdrant_options
         self.kafka_consumer_settings = kafka_consumer_settings
+        self.aisearch_client = aisearch_client
 
     async def handle(self, command: ProcessEmbeddingEventCommand) -> bool:
         assert command.model.cocktail_model is not None
@@ -69,78 +67,55 @@ class ProcessEmbeddingEventCommandHandler:
         )
 
         chunks_to_embed = [chunk for chunk in command.model.chunks if chunk.content.strip() != ""]
-        if not chunks_to_embed or len(chunks_to_embed) == 0:
-            self.logger.warning(
-                msg="No valid chunks to embed for cocktail, skipping embedding process",
-                extra={
-                    "cocktail_id": command.model.cocktail_model.id,
-                },
+
+        self.logger.info(
+            msg="Sending cocktail chunking result to ai search api for vector embedding storage",
+            extra={
+                "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
+                "messaging.kafka.topic_name": self.app_options.consumer_topic_name,
+                "cocktail_id": command.model.cocktail_model.id,
+            },
+        )
+
+        await self.aisearch_client.create_embeddings(
+            embedding_rq=CocktailEmbeddingRq(
+                content_chunks=[
+                    CocktailDescriptionChunk(content=chunk.content, category=chunk.category)
+                    for chunk in chunks_to_embed
+                ],
+                cocktail_model=CocktailModelInput(
+                    id=command.model.cocktail_model.id,
+                    title=command.model.cocktail_model.title,
+                    descriptiveTitle=command.model.cocktail_model.descriptiveTitle,
+                    serves=command.model.cocktail_model.serves,
+                    prepTimeMinutes=command.model.cocktail_model.prepTimeMinutes,
+                    isIba=command.model.cocktail_model.isIba,
+                    ingredients=[
+                        IngredientModel(
+                            name=ingredient.name,
+                            units=ingredient.units,
+                            display=ingredient.display,
+                            suggestions=ingredient.suggestions,
+                            preparation=aisearch_models.PreparationTypeModel[ingredient.preparation.value],
+                            uoM=aisearch_models.UofMTypeModel[ingredient.uoM.value],
+                            types=[aisearch_models.IngredientTypeModel[type_.value] for type_ in ingredient.types],
+                            applications=[
+                                aisearch_models.IngredientApplicationTypeModel[application.value]
+                                for application in ingredient.applications
+                            ],
+                            requirement=aisearch_models.IngredientRequirementTypeModel[ingredient.requirement.value],
+                        )
+                        for ingredient in command.model.cocktail_model.ingredients
+                    ],
+                    glassware=[
+                        aisearch_models.GlasswareTypeModel[glass.value]
+                        for glass in command.model.cocktail_model.glassware
+                    ],
+                    rating=command.model.cocktail_model.rating.rating,
+                    searchTiles=[s.uri for s in command.model.cocktail_model.searchTiles],
+                ),
             )
-            return False
-
-        ## -------------------------------
-        ## Ensure Qdrant collection exists
-        ## -------------------------------
-        if not ProcessEmbeddingEventCommandHandler.collection_exists:
-            existing_collections = [c.name for c in self.qdrant_client.get_collections().collections]
-
-            if self.qdrant_options.collection_name not in existing_collections:
-                self.qdrant_client.create_collection(
-                    collection_name=self.qdrant_options.collection_name,
-                    vectors_config=VectorParams(size=self.qdrant_options.vector_size, distance=Distance.COSINE),
-                )
-            ProcessEmbeddingEventCommandHandler.collection_exists = True
-
-        vector_store = QdrantVectorStore(
-            client=self.qdrant_client,
-            collection_name=self.qdrant_options.collection_name,
-            embedding=HuggingFaceEndpointEmbeddings(
-                model=self.hugging_face_options.inference_model,  # http://localhost:8989 | sentence-transformers/all-mpnet-base-v2
-                huggingfacehub_api_token=self.hugging_face_options.api_token,
-                task="feature-extraction",
-            ),
         )
-
-        self.logger.info(
-            msg="Deleting existing cocktail embedding vectors from database",
-            extra={
-                "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
-                "messaging.kafka.topic_name": self.app_options.consumer_topic_name,
-                "cocktail_id": command.model.cocktail_model.id,
-            },
-        )
-
-        self.qdrant_client.delete(
-            collection_name=self.qdrant_options.collection_name,
-            points_selector=Filter(
-                must=[FieldCondition(key="cocktail_id", match=MatchValue(value=command.model.cocktail_model.id))]
-            ),
-        )
-
-        self.logger.info(
-            msg="Sending cocktail embedding result to vector database",
-            extra={
-                "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
-                "messaging.kafka.topic_name": self.app_options.consumer_topic_name,
-                "cocktail_id": command.model.cocktail_model.id,
-            },
-        )
-
-        result = vector_store.add_texts(
-            texts=[chunk.content for chunk in chunks_to_embed],
-            metadatas=[
-                {
-                    "cocktail_id": command.model.cocktail_model.id,
-                    "category": chunk.category,
-                    "description": chunk.content,
-                }
-                for chunk in chunks_to_embed
-            ],
-            ids=[chunks_to_embed[i].to_uuid() for i in range(len(chunks_to_embed))],
-        )
-
-        if len(result) == 0:
-            raise ValueError("No embedding results returned from vector store")
 
         self.logger.info(
             msg="Cocktail embedding succeeded",
