@@ -1,9 +1,9 @@
+from cezzis_oauth import IOAuthTokenProvider
 from injector import inject
 
 from cocktails_embedding_agent.domain.config.aisearch_api_options import AISearchApiOptions
 from cocktails_embedding_agent.infrastructure.clients.aisearch_api.aisearch_models import CocktailEmbeddingRq
 from cocktails_embedding_agent.infrastructure.clients.aisearch_api.iaisearch_client import IAISearchClient
-from cocktails_embedding_agent.infrastructure.clients.oauth.oauth_token_provider import IOAuthTokenProvider
 
 
 class AISearchClient(IAISearchClient):
