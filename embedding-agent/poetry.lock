@@ -142,14 +142,14 @@ types-confluent-kafka = ">=1.4.0,<2.0.0"
 
 [[package]]
 name = "cezzis-oauth"
-version = "0.0.18"
+version = "0.0.19"
 description = "A lightweight, production-ready Python library for OAuth 2.0 authentication. Provides both **token acquisition** and **JWT verification** with enterprise-grade features including automatic token caching, refresh management, JWKS-based verification, and scope validation."
 optional = false
 python-versions = "<3.15,>=3.12"
 groups = ["main"]
 files = [
-    {file = "cezzis_oauth-0.0.18-py3-none-any.whl", hash = "sha256:1752f9c051a83cedce08f898abd3878198c68bc41876d583ffe90bfa09775a6e"},
-    {file = "cezzis_oauth-0.0.18.tar.gz", hash = "sha256:ec67abe04c9d34762cb0f9707f8dabed1c343ffa68a47d246028fe6db33a259f"},
+    {file = "cezzis_oauth-0.0.19-py3-none-any.whl", hash = "sha256:00fc7298f57d3884595cd47fca9b8753e37421fd28c0436f117a855efdda00c8"},
+    {file = "cezzis_oauth-0.0.19.tar.gz", hash = "sha256:ce3b86dd529679903cd807dd0d679ceb72ecb3c16740565259b626dc8facedff"},
 ]
 
 [package.dependencies]
@@ -2306,4 +2306,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.15"
-content-hash = "1105c79f3f6847e540faf8d698d7914dc42b216b39f4e081c4698a93cd734e32"
+content-hash = "b2a324ff66753c6446a266fdf0ed5a01979c73629f6c3657764f04d57b28ebef"
