@@ -17,6 +17,10 @@ from cocktails_embedding_agent.domain import get_otel_options
 def initialize_opentelemetry() -> None:
     """Initialize OpenTelemetry tracing and logging for the application."""
 
+    # Suppress urllib3 debug logs (used by OTLP exporter) to prevent self-logging
+    logging.getLogger("urllib3").setLevel(logging.INFO)
+    logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
+
     # Make sure toshutdown and gracefully flush the telemetry data on exit
     atexit.register(shutdown_otel)
 
