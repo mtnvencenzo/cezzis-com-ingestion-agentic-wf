@@ -21,7 +21,7 @@ test:
 coverage:
 	poetry run pytest -v --cov=cocktails_chunking_agent --cov-report=xml:coverage.xml --cov-report=term --junitxml=pytest-results.xml
 
-cocktails-api:
+gen-cocktails-api:
 	poetry run datamodel-codegen \
 		--url "http://localhost:7177/scalar/v1/openapi.json" \
 		--input-file-type openapi --output src/cocktails_chunking_agent/infrastructure/clients/cocktails_api/cocktail_api.py \
