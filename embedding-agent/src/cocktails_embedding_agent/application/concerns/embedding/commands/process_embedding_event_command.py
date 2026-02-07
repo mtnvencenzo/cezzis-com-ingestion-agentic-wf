@@ -10,9 +10,9 @@ from cocktails_embedding_agent.domain.models.cocktail_chunking_model import Cock
 from cocktails_embedding_agent.infrastructure.clients.aisearch_api import aisearch_models
 from cocktails_embedding_agent.infrastructure.clients.aisearch_api.aisearch_models import (
     CocktailDescriptionChunk,
+    CocktailEmbeddingModel,
     CocktailEmbeddingRq,
     CocktailKeywords,
-    CocktailModelInput,
     IngredientModel,
 )
 from cocktails_embedding_agent.infrastructure.clients.aisearch_api.iaisearch_client import IAISearchClient
@@ -84,7 +84,7 @@ class ProcessEmbeddingEventCommandHandler:
                     CocktailDescriptionChunk(content=chunk.content, category=chunk.category)
                     for chunk in chunks_to_embed
                 ],
-                cocktail_model=CocktailModelInput(
+                cocktail_embedding_model=CocktailEmbeddingModel(
                     id=command.model.cocktail_model.id,
                     title=command.model.cocktail_model.title,
                     descriptiveTitle=command.model.cocktail_model.descriptiveTitle,
@@ -114,7 +114,6 @@ class ProcessEmbeddingEventCommandHandler:
                     ],
                     rating=command.model.cocktail_model.rating.rating,
                     searchTiles=[s.uri for s in command.model.cocktail_model.searchTiles],
-                    search_statistics=None,
                 ),
                 cocktail_keywords=CocktailKeywords(
                     keywordsBaseSpirit=[kw for kw in (command.model.cocktail_model.keywords.keywordsBaseSpirit or [])]
