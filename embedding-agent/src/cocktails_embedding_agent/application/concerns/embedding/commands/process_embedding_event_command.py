@@ -11,6 +11,7 @@ from cocktails_embedding_agent.infrastructure.clients.aisearch_api import aisear
 from cocktails_embedding_agent.infrastructure.clients.aisearch_api.aisearch_models import (
     CocktailDescriptionChunk,
     CocktailEmbeddingRq,
+    CocktailKeywords,
     CocktailModelInput,
     IngredientModel,
 )
@@ -113,6 +114,70 @@ class ProcessEmbeddingEventCommandHandler:
                     ],
                     rating=command.model.cocktail_model.rating.rating,
                     searchTiles=[s.uri for s in command.model.cocktail_model.searchTiles],
+                    search_statistics=None,
+                ),
+                cocktail_keywords=CocktailKeywords(
+                    keywordsBaseSpirit=[kw for kw in (command.model.cocktail_model.keywords.keywordsBaseSpirit or [])]
+                    if command.model.cocktail_model
+                    and command.model.cocktail_model.keywords
+                    and command.model.cocktail_model.keywords.keywordsBaseSpirit
+                    else [],
+                    keywordsFlavorProfile=[
+                        kw for kw in (command.model.cocktail_model.keywords.keywordsFlavorProfile or [])
+                    ]
+                    if command.model.cocktail_model
+                    and command.model.cocktail_model.keywords
+                    and command.model.cocktail_model.keywords.keywordsFlavorProfile
+                    else [],
+                    keywordsTechnique=[kw for kw in (command.model.cocktail_model.keywords.keywordsTechnique or [])]
+                    if command.model.cocktail_model
+                    and command.model.cocktail_model.keywords
+                    and command.model.cocktail_model.keywords.keywordsTechnique
+                    else [],
+                    keywordsOccasion=[kw for kw in (command.model.cocktail_model.keywords.keywordsOccasion or [])]
+                    if command.model.cocktail_model
+                    and command.model.cocktail_model.keywords
+                    and command.model.cocktail_model.keywords.keywordsOccasion
+                    else [],
+                    keywordsCocktailFamily=[
+                        kw for kw in (command.model.cocktail_model.keywords.keywordsCocktailFamily or [])
+                    ]
+                    if command.model.cocktail_model
+                    and command.model.cocktail_model.keywords
+                    and command.model.cocktail_model.keywords.keywordsCocktailFamily
+                    else [],
+                    keywordsMood=[kw for kw in (command.model.cocktail_model.keywords.keywordsMood or [])]
+                    if command.model.cocktail_model
+                    and command.model.cocktail_model.keywords
+                    and command.model.cocktail_model.keywords.keywordsMood
+                    else [],
+                    keywordsSearchTerms=[kw for kw in (command.model.cocktail_model.keywords.keywordsSearchTerms or [])]
+                    if command.model.cocktail_model
+                    and command.model.cocktail_model.keywords
+                    and command.model.cocktail_model.keywords.keywordsSearchTerms
+                    else [],
+                    keywordsSpiritSubtype=[
+                        kw for kw in (command.model.cocktail_model.keywords.keywordsSpiritSubtype or [])
+                    ]
+                    if command.model.cocktail_model
+                    and command.model.cocktail_model.keywords
+                    and command.model.cocktail_model.keywords.keywordsSpiritSubtype
+                    else [],
+                    keywordsSeason=[kw for kw in (command.model.cocktail_model.keywords.keywordsSeason or [])]
+                    if command.model.cocktail_model
+                    and command.model.cocktail_model.keywords
+                    and command.model.cocktail_model.keywords.keywordsSeason
+                    else [],
+                    keywordsStrength=command.model.cocktail_model.keywords.keywordsStrength
+                    if command.model.cocktail_model
+                    and command.model.cocktail_model.keywords
+                    and command.model.cocktail_model.keywords.keywordsStrength
+                    else None,
+                    keywordsTemperature=command.model.cocktail_model.keywords.keywordsTemperature
+                    if command.model.cocktail_model
+                    and command.model.cocktail_model.keywords
+                    and command.model.cocktail_model.keywords.keywordsTemperature
+                    else None,
                 ),
             )
         )
