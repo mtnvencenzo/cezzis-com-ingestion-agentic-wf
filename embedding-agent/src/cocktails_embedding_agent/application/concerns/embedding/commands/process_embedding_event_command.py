@@ -12,8 +12,8 @@ from cocktails_embedding_agent.infrastructure.clients.aisearch_api.aisearch_mode
     CocktailDescriptionChunk,
     CocktailEmbeddingModel,
     CocktailEmbeddingRq,
-    CocktailKeywords,
-    IngredientModel,
+    CocktailSearchIngredientModel,
+    CocktailSearchKeywords,
 )
 from cocktails_embedding_agent.infrastructure.clients.aisearch_api.iaisearch_client import IAISearchClient
 
@@ -92,30 +92,37 @@ class ProcessEmbeddingEventCommandHandler:
                     prepTimeMinutes=command.model.cocktail_model.prepTimeMinutes,
                     isIba=command.model.cocktail_model.isIba,
                     ingredients=[
-                        IngredientModel(
+                        CocktailSearchIngredientModel(
                             name=ingredient.name,
                             units=ingredient.units,
                             display=ingredient.display,
                             suggestions=ingredient.suggestions,
-                            preparation=aisearch_models.PreparationTypeModel[ingredient.preparation.value],
-                            uoM=aisearch_models.UofMTypeModel[ingredient.uoM.value],
-                            types=[aisearch_models.IngredientTypeModel[type_.value] for type_ in ingredient.types],
+                            preparation=aisearch_models.CocktailSearchPreparationTypeModel[
+                                ingredient.preparation.value
+                            ],
+                            uoM=aisearch_models.CocktailSearchUofMTypeModel[ingredient.uoM.value],
+                            types=[
+                                aisearch_models.CocktailSearchIngredientTypeModel[type_.value]
+                                for type_ in ingredient.types
+                            ],
                             applications=[
-                                aisearch_models.IngredientApplicationTypeModel[application.value]
+                                aisearch_models.CocktailSearchIngredientApplicationTypeModel[application.value]
                                 for application in ingredient.applications
                             ],
-                            requirement=aisearch_models.IngredientRequirementTypeModel[ingredient.requirement.value],
+                            requirement=aisearch_models.CocktailSearchIngredientRequirementTypeModel[
+                                ingredient.requirement.value
+                            ],
                         )
                         for ingredient in command.model.cocktail_model.ingredients
                     ],
                     glassware=[
-                        aisearch_models.GlasswareTypeModel[glass.value]
+                        aisearch_models.CocktailSearchGlasswareTypeModel[glass.value]
                         for glass in command.model.cocktail_model.glassware
                     ],
                     rating=command.model.cocktail_model.rating.rating,
                     searchTiles=[s.uri for s in command.model.cocktail_model.searchTiles],
                 ),
-                cocktailKeywords=CocktailKeywords(
+                cocktailKeywords=CocktailSearchKeywords(
                     keywordsBaseSpirit=[kw for kw in (command.model.cocktail_model.keywords.keywordsBaseSpirit or [])]
                     if command.model.cocktail_model
                     and command.model.cocktail_model.keywords
