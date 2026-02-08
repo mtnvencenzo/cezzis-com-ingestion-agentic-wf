@@ -80,11 +80,11 @@ class ProcessEmbeddingEventCommandHandler:
 
         await self.aisearch_client.create_embeddings(
             embedding_rq=CocktailEmbeddingRq(
-                content_chunks=[
+                contentChunks=[
                     CocktailDescriptionChunk(content=chunk.content, category=chunk.category)
                     for chunk in chunks_to_embed
                 ],
-                cocktail_embedding_model=CocktailEmbeddingModel(
+                cocktailEmbeddingModel=CocktailEmbeddingModel(
                     id=command.model.cocktail_model.id,
                     title=command.model.cocktail_model.title,
                     descriptiveTitle=command.model.cocktail_model.descriptiveTitle,
@@ -115,7 +115,7 @@ class ProcessEmbeddingEventCommandHandler:
                     rating=command.model.cocktail_model.rating.rating,
                     searchTiles=[s.uri for s in command.model.cocktail_model.searchTiles],
                 ),
-                cocktail_keywords=CocktailKeywords(
+                cocktailKeywords=CocktailKeywords(
                     keywordsBaseSpirit=[kw for kw in (command.model.cocktail_model.keywords.keywordsBaseSpirit or [])]
                     if command.model.cocktail_model
                     and command.model.cocktail_model.keywords
