@@ -1,0 +1,22 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: cezzis-cocktails-extraction-agent-updater
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: "cezzis-cocktails-extraction-agent"
+      commonUpdateSettings:
+        updateStrategy: "semver"
+        forceUpdate: true
+      images:
+        - alias: "cocktailsingestionextractionagent"
+          imageName: "acrveceusgloshared001.azurecr.io/cocktailsingestionextractionagent:0.x"
+          manifestTargets:
+            kustomize:
+              name: "acrveceusgloshared001.azurecr.io/cocktailsingestionextractionagent"
+  writeBackConfig:
+    method: "git:secret:argocd/git-creds"
+    gitConfig:
+      branch: main
+      writeBackTarget: kustomization

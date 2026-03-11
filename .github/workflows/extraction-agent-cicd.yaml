@@ -3,14 +3,20 @@ name: cicd-extration-agent
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'extraction-agent/**'
-      - .github/workflows/extraction-agent-cicd.yaml
+    paths-ignore:
+      - 'extraction-agent/.iac/**'
+      - 'extraction-agent/.vscode/**'
+      - '.github/**'
+      - '.vscode/**'
+      - '.assets/**'
   push:
     branches: [main]
-    paths:
-      - 'extraction-agent/**'
-      - .github/workflows/extraction-agent-cicd.yaml
+    paths-ignore:
+      - 'extraction-agent/.iac/**'
+      - 'extraction-agent/.vscode/**'
+      - '.github/**'
+      - '.vscode/**'
+      - '.assets/**'
 
   workflow_dispatch:
 
