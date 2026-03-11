@@ -31,6 +31,4 @@ spec:
             - configMapRef:
                 name: cezzis-cocktails-extraction-agent-config
             - secretRef:
-                name: cezzis-cocktails-extraction-agent-secrets
-            - secretRef:
                 name: cezzis-cocktails-extraction-agent-shared-secrets
