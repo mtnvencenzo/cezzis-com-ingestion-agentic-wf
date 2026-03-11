@@ -17,9 +17,9 @@ data:
   KAFKA_CONSUMER_GROUP: "cocktails-ingestion-extraction-agent"
   # extraction agent settings
   EXTRACTION_AGENT_ENABLED: "true"
-  EXTRACTION_AGENT_KAFKA_TOPIC_NAME: "cocktails-update-topic"
+  EXTRACTION_AGENT_KAFKA_TOPIC_NAME: "cocktails-update-topic-prd"
   EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS: "1"
-  EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME: "cocktails-ingestion-extraction-results"
+  EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME: "cocktails-ingestion-extraction-results-prd"
   EXTRACTION_AGENT_KAFKA_MAX_POLL_INTERVAL_MS: "1500000"
   EXTRACTION_AGENT_KAFKA_AUTO_OFFSET_RESET: "earliest"
   EXTRACTION_AGENT_LLM_MODEL: "qwen3:8b"
