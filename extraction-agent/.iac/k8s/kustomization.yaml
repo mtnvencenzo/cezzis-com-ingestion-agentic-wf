@@ -6,5 +6,5 @@ resources:
   - deployment.yml
 images:
   - name: acrveceusgloshared001.azurecr.io/cocktailsingestionextractionagent
-    newTag: latest
+    newTag: 0.0.41
     newName: acrveceusgloshared001.azurecr.io/cocktailsingestionextractionagent
