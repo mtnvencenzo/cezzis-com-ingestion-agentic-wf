@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cezzis-cocktails-chunking-agent
+  namespace: cezzis
+  labels:
+    app: cezzis-cocktails-chunking-agent
+    app.kubernetes.io/part-of: cezzis
+    app.kubernetes.io/managed-by: argocd
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: cezzis-cocktails-chunking-agent
+  template:
+    metadata:
+      labels:
+        app: cezzis-cocktails-chunking-agent
+        app.kubernetes.io/part-of: cezzis
+        app.kubernetes.io/managed-by: argocd
+      annotations:
+        dapr.io/enabled: "false"
+    spec:
+      imagePullSecrets:
+        - name: acr-pull-secret
+      containers:
+        - name: cezzis-cocktails-chunking-agent
+          image: acrveceusgloshared001.azurecr.io/cocktailsingestionchunkingagent
+          envFrom:
+            - configMapRef:
+                name: cezzis-cocktails-chunking-agent-config
+            - secretRef:
+                name: cezzis-cocktails-chunking-agent-shared-secrets

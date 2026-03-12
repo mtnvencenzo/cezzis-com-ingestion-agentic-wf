@@ -3,14 +3,20 @@ name: cicd-chunking-agent
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'chunking-agent/**'
-      - .github/workflows/chunking-agent-cicd.yaml
+    paths-ignore:
+      - 'chunking-agent/.iac/**'
+      - 'chunking-agent/.vscode/**'
+      - '.github/**'
+      - '.vscode/**'
+      - '.assets/**'
   push:
     branches: [main]
-    paths:
-      - 'chunking-agent/**'
-      - .github/workflows/chunking-agent-cicd.yaml
+    paths-ignore:
+      - 'chunking-agent/.iac/**'
+      - 'chunking-agent/.vscode/**'
+      - '.github/**'
+      - '.vscode/**'
+      - '.assets/**'
 
   workflow_dispatch:
 

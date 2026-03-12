@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cezzis-cocktails-chunking-agent
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: cezzis
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/mtnvencenzo/cezzis-com-ingestion-agentic-wf.git'
+    targetRevision: main
+    path: chunking-agent/.iac/k8s
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: cezzis
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=false
+      - PruneLast=true

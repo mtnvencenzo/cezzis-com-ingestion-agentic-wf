@@ -1,0 +1,22 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: cezzis-cocktails-chunking-agent-updater
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: "cezzis-cocktails-chunking-agent"
+      commonUpdateSettings:
+        updateStrategy: "semver"
+        forceUpdate: true
+      images:
+        - alias: "cocktailsingestionchunkingagent"
+          imageName: "acrveceusgloshared001.azurecr.io/cocktailsingestionchunkingagent:0.x"
+          manifestTargets:
+            kustomize:
+              name: "acrveceusgloshared001.azurecr.io/cocktailsingestionchunkingagent"
+  writeBackConfig:
+    method: "git:secret:argocd/git-creds"
+    gitConfig:
+      branch: main
+      writeBackTarget: kustomization
