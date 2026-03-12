@@ -3,20 +3,20 @@ name: cicd-extration-agent
 on:
   pull_request:
     branches: [main]
-    paths-ignore:
-      - 'extraction-agent/.iac/**'
-      - 'extraction-agent/.vscode/**'
-      - '.github/**'
-      - '.vscode/**'
-      - '.assets/**'
+    paths:
+      - 'extraction-agent/src/**'
+      - 'extraction-agent/test/**'
+      - 'extraction-agent/poetry.lock'
+      - 'extraction-agent/pyproject.toml'
+      - .github/workflows/extraction-agent-cicd.yaml
   push:
     branches: [main]
-    paths-ignore:
-      - 'extraction-agent/.iac/**'
-      - 'extraction-agent/.vscode/**'
-      - '.github/**'
-      - '.vscode/**'
-      - '.assets/**'
+    paths:
+      - 'extraction-agent/src/**'
+      - 'extraction-agent/test/**'
+      - 'extraction-agent/poetry.lock'
+      - 'extraction-agent/pyproject.toml'
+      - .github/workflows/extraction-agent-cicd.yaml
 
   workflow_dispatch:
 

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cezzis-cocktails-embedding-agent
+  namespace: cezzis
+  labels:
+    app: cezzis-cocktails-embedding-agent
+    app.kubernetes.io/part-of: cezzis
+    app.kubernetes.io/managed-by: argocd
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: cezzis-cocktails-embedding-agent
+  template:
+    metadata:
+      labels:
+        app: cezzis-cocktails-embedding-agent
+        app.kubernetes.io/part-of: cezzis
+        app.kubernetes.io/managed-by: argocd
+      annotations:
+        dapr.io/enabled: "false"
+    spec:
+      imagePullSecrets:
+        - name: acr-pull-secret
+      containers:
+        - name: cezzis-cocktails-embedding-agent
+          image: acrveceusgloshared001.azurecr.io/cocktailsingestionembeddingagent
+          envFrom:
+            - configMapRef:
+                name: cezzis-cocktails-embedding-agent-config
+            - secretRef:
+                name: cezzis-cocktails-embedding-agent-secrets
+            - secretRef:
+                name: cezzis-cocktails-embedding-agent-shared-secrets
