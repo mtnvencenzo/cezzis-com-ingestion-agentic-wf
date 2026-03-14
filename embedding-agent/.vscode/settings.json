@@ -32,17 +32,23 @@
         "**/.ruff_cache": true,
         "**/.mypy_cache": true
     },
-    "python-envs.defaultEnvManager": "ms-python.python:venv",
     "python-envs.pythonProjects": [
         {
-            "path": "",
-            "envManager": "ms-python.python:venv",
-            "packageManager": "ms-python.python:pip"
+            "path": ".",
+            "envManager": "ms-python.python:poetry",
+            "packageManager": "ms-python.python:poetry"
         }
     ],
     "python.testing.pytestArgs": [
-        "cocktails_embedding_agent"
+        "test"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    }
 }
