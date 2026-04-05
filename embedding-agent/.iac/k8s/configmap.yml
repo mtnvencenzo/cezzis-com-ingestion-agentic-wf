@@ -29,5 +29,5 @@ data:
   EMBEDDING_AGENT_KAFKA_MAX_POLL_INTERVAL_MS: "300000"
   EMBEDDING_AGENT_KAFKA_AUTO_OFFSET_RESET: "earliest"
   # AISearch api settings
-  AISEARCH_API_BASE_URL: "http://cezzis-com-cocktails-aisearch.cezzis.svc.cluster.local:8010"
+  AISEARCH_API_BASE_URL: "https://www.cezzis.com/prd/aisearch"
   AISEARCH_API_TIMEOUT_SECONDS: "60"

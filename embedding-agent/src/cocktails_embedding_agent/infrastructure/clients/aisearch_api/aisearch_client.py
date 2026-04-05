@@ -23,10 +23,11 @@ class AISearchClient(IAISearchClient):
         # Get access token from OAuth
         access_token = await self.oauth_token_provider.get_access_token()
 
-        url = f"{self.aisearch_api_options.base_url}/v1/cocktails/embeddings"
+        url = f"{self.aisearch_api_options.base_url}/api/v1/search/embeddings"
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {access_token}",
+            "X-Key": self.aisearch_api_options.api_key,
         }
 
         async with httpx.AsyncClient(timeout=self.aisearch_api_options.timeout_seconds) as client:

@@ -12,6 +12,7 @@ class AISearchApiOptions(BaseSettings):
     Attributes:
         base_url (str): Base URL for the AISearch API.
         timeout_seconds (int): Timeout for API requests in seconds.
+        api_key (str): API key for authenticating requests.
     """
 
     model_config = SettingsConfigDict(
@@ -20,6 +21,7 @@ class AISearchApiOptions(BaseSettings):
 
     base_url: str = Field(default="", validation_alias="AISEARCH_API_BASE_URL")
     timeout_seconds: int = Field(default=30, validation_alias="AISEARCH_API_TIMEOUT_SECONDS")
+    api_key: str = Field(default="", validation_alias="AISEARCH_API_KEY")
 
 
 _logger: logging.Logger = logging.getLogger("aisearch_api_options")
