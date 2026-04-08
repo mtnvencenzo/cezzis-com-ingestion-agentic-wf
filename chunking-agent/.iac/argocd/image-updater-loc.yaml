@@ -1,22 +1,24 @@
 apiVersion: argocd-image-updater.argoproj.io/v1alpha1
 kind: ImageUpdater
 metadata:
-  name: cezzis-cocktails-extraction-agent-updater
+  name: cezzis-cocktails-chunking-agent-loc-updater
   namespace: argocd
 spec:
   applicationRefs:
-    - namePattern: "cezzis-cocktails-extraction-agent"
+    - namePattern: "cezzis-cocktails-chunking-agent-loc"
       commonUpdateSettings:
         updateStrategy: "semver"
         forceUpdate: true
       images:
-        - alias: "cocktailsingestionextractionagent"
-          imageName: "acrveceusgloshared001.azurecr.io/cocktailsingestionextractionagent:0.x"
+        - alias: "cocktailsingestionchunkingagent"
+          imageName: "acrveceusgloshared001.azurecr.io/cocktailsingestionchunkingagent:0.x"
           manifestTargets:
             kustomize:
-              name: "acrveceusgloshared001.azurecr.io/cocktailsingestionextractionagent"
+              name: "acrveceusgloshared001.azurecr.io/cocktailsingestionchunkingagent"
   writeBackConfig:
     method: "git:secret:argocd/git-creds"
     gitConfig:
       branch: main
       writeBackTarget: kustomization
+      kustomization:
+        path: chunking-agent/.iac/k8s-loc

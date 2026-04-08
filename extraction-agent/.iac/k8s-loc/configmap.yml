@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cezzis-cocktails-extraction-agent-config
+  namespace: cezzis
+  labels:
+    app.kubernetes.io/part-of: cezzis
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "100"
+data:
+  ENV: "loc"
+  # open telemetry / tracing settings
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.openobserve-platform.svc.cluster.local:4318"
+  OTEL_SERVICE_NAME: "cocktails-ingestion-extraction-agent"
+  OTEL_SERVICE_NAMESPACE: "cezzis"
+  OTEL_ENABLE_CONSOLE_LOGGING: "true"
+  OTEL_ENABLE_TRACING: "true"
+  OTEL_ENABLE_LOGGING: "true"
+  # kafka settings
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-broker-1.kafka-platform.svc.cluster.local:19092"
+  KAFKA_CONSUMER_GROUP: "cocktails-ingestion-extraction-agent"
+  # extraction agent settings
+  EXTRACTION_AGENT_ENABLED: "true"
+  EXTRACTION_AGENT_KAFKA_TOPIC_NAME: "cocktails-update-topic-loc"
+  EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS: "1"
+  EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME: "cocktails-ingestion-extraction-results-loc"
+  EXTRACTION_AGENT_KAFKA_MAX_POLL_INTERVAL_MS: "1500000"
+  EXTRACTION_AGENT_KAFKA_AUTO_OFFSET_RESET: "earliest"
+  EXTRACTION_AGENT_LLM_MODEL: "qwen3:8b"
+  EXTRACTION_AGENT_USE_LLM: "false"
+  # llm and langfuse settings
+  LLM_HOST: "http://ollama-host.ai-platform.svc.cluster.local:11434"
+  LANGFUSE_PUBLIC_KEY: "pk-lf-2a7a9459-d479-4f71-a904-48fe1e541675"
+  LANGFUSE_BASE_URL: "https://us.cloud.langfuse.com"
+

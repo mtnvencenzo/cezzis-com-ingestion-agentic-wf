@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cezzis-cocktails-extraction-agent
+  name: cezzis-cocktails-chunking-agent-cloudsync
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: cezzis
@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: 'https://github.com/mtnvencenzo/cezzis-com-ingestion-agentic-wf.git'
     targetRevision: main
-    path: extraction-agent/.iac/k8s
+    path: chunking-agent/.iac/k8s-cloudsync
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: cezzis

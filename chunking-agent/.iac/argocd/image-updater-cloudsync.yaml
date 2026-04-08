@@ -1,11 +1,11 @@
 apiVersion: argocd-image-updater.argoproj.io/v1alpha1
 kind: ImageUpdater
 metadata:
-  name: cezzis-cocktails-chunking-agent-updater
+  name: cezzis-cocktails-chunking-agent-cloudsync-updater
   namespace: argocd
 spec:
   applicationRefs:
-    - namePattern: "cezzis-cocktails-chunking-agent"
+    - namePattern: "cezzis-cocktails-chunking-agent-cloudsync"
       commonUpdateSettings:
         updateStrategy: "semver"
         forceUpdate: true
@@ -20,3 +20,5 @@ spec:
     gitConfig:
       branch: main
       writeBackTarget: kustomization
+      kustomization:
+        path: chunking-agent/.iac/k8s-cloudsync
