@@ -1,6 +1,7 @@
 ## CloudSync
 ### Deploy
 
+
 ``` shell
 # app
 kubectl apply -f https://raw.githubusercontent.com/mtnvencenzo/cezzis-com-ingestion-agentic-wf/refs/heads/main/embedding-agent/.iac/argocd/cezzis-cocktails-embedding-agent-cloudsync.yaml
