@@ -22,9 +22,9 @@ data:
   KAFKA_CONSUMER_GROUP: "cocktails-ingestion-chunking-agent-cloudsync"
   # chunking agent settings
   CHUNKING_AGENT_ENABLED: "true"
-  CHUNKING_AGENT_KAFKA_TOPIC_NAME: "cocktails-ingestion-extraction-results-prd"
+  CHUNKING_AGENT_KAFKA_TOPIC_NAME: "cocktails-ingestion-extraction-results-cloudsync"
   CHUNKING_AGENT_KAFKA_NUM_CONSUMERS: "1"
-  CHUNKING_AGENT_KAFKA_RESULTS_TOPIC_NAME: "cocktails-ingestion-chunking-results-prd"
+  CHUNKING_AGENT_KAFKA_RESULTS_TOPIC_NAME: "cocktails-ingestion-chunking-results-cloudsync"
   CHUNKING_AGENT_KAFKA_MAX_POLL_INTERVAL_MS: "1200000"
   CHUNKING_AGENT_KAFKA_AUTO_OFFSET_RESET: "earliest"
   CHUNKING_AGENT_LLM_MODEL: "qwen2.5:7b"

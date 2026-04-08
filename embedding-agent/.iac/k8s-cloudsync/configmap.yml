@@ -27,7 +27,7 @@ data:
   KAFKA_CONSUMER_GROUP: "cocktails-ingestion-embedding-agent-cloudsync"
   # embedding agent settings
   EMBEDDING_AGENT_ENABLED: "true"
-  EMBEDDING_AGENT_KAFKA_TOPIC_NAME: "cocktails-ingestion-chunking-results-prd"
+  EMBEDDING_AGENT_KAFKA_TOPIC_NAME: "cocktails-ingestion-chunking-results-cloudsync"
   EMBEDDING_AGENT_KAFKA_NUM_CONSUMERS: "1"
   EMBEDDING_AGENT_KAFKA_MAX_POLL_INTERVAL_MS: "300000"
   EMBEDDING_AGENT_KAFKA_AUTO_OFFSET_RESET: "earliest"
