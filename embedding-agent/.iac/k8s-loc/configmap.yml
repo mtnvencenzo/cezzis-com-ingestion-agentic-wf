@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cezzis-cocktails-embedding-agent-config
+  namespace: cezzis
+  labels:
+    app.kubernetes.io/part-of: cezzis
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "100"
+data:
+  ENV: "loc"
+  # open telemetry / tracing settings
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.openobserve-platform.svc.cluster.local:4318"
+  OTEL_SERVICE_NAME: "cocktails-ingestion-embedding-agent"
+  OTEL_SERVICE_NAMESPACE: "cezzis"
+  OTEL_ENABLE_CONSOLE_LOGGING: "true"
+  OTEL_ENABLE_TRACING: "true"
+  OTEL_ENABLE_LOGGING: "true"
+  # oauth settings
+  OAUTH_DOMAIN: "login.cezzis.com"
+  OAUTH_CLIENT_ID: "akyprIvjnc1g1KHkCeHzzuvuYmf8cz88"
+  OAUTH_AUDIENCE: "https://cezzis-aisearch-api"
+  OAUTH_WRITE_EMBEDDINGS_SCOPE: "write:embeddings"
+  # kafka settings
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-broker-1.kafka-platform.svc.cluster.local:19092"
+  KAFKA_CONSUMER_GROUP: "cocktails-ingestion-embedding-agent"
+  # embedding agent settings
+  EMBEDDING_AGENT_ENABLED: "true"
+  EMBEDDING_AGENT_KAFKA_TOPIC_NAME: "cocktails-ingestion-chunking-results-loc"
+  EMBEDDING_AGENT_KAFKA_NUM_CONSUMERS: "1"
+  EMBEDDING_AGENT_KAFKA_MAX_POLL_INTERVAL_MS: "300000"
+  EMBEDDING_AGENT_KAFKA_AUTO_OFFSET_RESET: "earliest"
+  # AISearch api settings
+  AISEARCH_API_BASE_URL: "http://cezzis-aisearch.cezzis.svc.cluster.local"
+  AISEARCH_API_TIMEOUT_SECONDS: "60"

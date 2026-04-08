@@ -1,0 +1,24 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: cezzis-cocktails-embedding-agent-loc-updater
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: "cezzis-cocktails-embedding-agent-loc"
+      commonUpdateSettings:
+        updateStrategy: "semver"
+        forceUpdate: true
+      images:
+        - alias: "cocktailsingestionembeddingagent"
+          imageName: "acrveceusgloshared001.azurecr.io/cocktailsingestionembeddingagent:0.x"
+          manifestTargets:
+            kustomize:
+              name: "acrveceusgloshared001.azurecr.io/cocktailsingestionembeddingagent"
+  writeBackConfig:
+    method: "git:secret:argocd/git-creds"
+    gitConfig:
+      branch: main
+      writeBackTarget: kustomization
+      kustomization:
+        path: embedding-agent/.iac/k8s-loc
