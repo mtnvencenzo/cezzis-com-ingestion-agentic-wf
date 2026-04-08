@@ -19,6 +19,4 @@ spec:
     method: "git:secret:argocd/git-creds"
     gitConfig:
       branch: main
-      writeBackTarget: kustomization
-      kustomization:
-        path: extraction-agent/.iac/k8s-loc
+      writeBackTarget: "kustomization:/extraction-agent/.iac/k8s-loc"

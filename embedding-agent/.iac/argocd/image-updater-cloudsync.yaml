@@ -19,6 +19,4 @@ spec:
     method: "git:secret:argocd/git-creds"
     gitConfig:
       branch: main
-      writeBackTarget: kustomization
-      kustomization:
-        path: embedding-agent/.iac/k8s-cloudsync
+      writeBackTarget: "kustomization:/embedding-agent/.iac/k8s-cloudsync"
