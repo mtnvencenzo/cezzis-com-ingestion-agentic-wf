@@ -158,14 +158,14 @@ files = [
 
 [[package]]
 name = "cezzis-kafka"
-version = "0.0.25"
+version = "0.0.26"
 description = "cezzis-kafka is a lightweight Python library for working with Kafka topics and event streams. It simplifies producing, consuming, and managing messages, enabling seamless integration with distributed systems and real-time data pipelines. Designed for flexibility and ease of use, cezzis-kafka supports both synchronous and asynchronous workflows."
 optional = false
 python-versions = "<3.15,>=3.12"
 groups = ["main"]
 files = [
-    {file = "cezzis_kafka-0.0.25-py3-none-any.whl", hash = "sha256:c7b85fcde5b0b46b2f0f4f07fd353d17a015e29d02622d1b3c17e616625f9069"},
-    {file = "cezzis_kafka-0.0.25.tar.gz", hash = "sha256:fd168652ae3a287577d94624b2b24d4ac459293478f64c554c36b0ae98c4be57"},
+    {file = "cezzis_kafka-0.0.26-py3-none-any.whl", hash = "sha256:c2ae73580c243bdf261f9378448cb8d8b28034e24b82e2119ff0e2de680e970f"},
+    {file = "cezzis_kafka-0.0.26.tar.gz", hash = "sha256:afc75fbd24268a7470ad4c92669a3f6b5d32f8ba1ec3b7938f1df06189ab3630"},
 ]
 
 [package.dependencies]
