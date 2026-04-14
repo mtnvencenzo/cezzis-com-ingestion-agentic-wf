@@ -23,6 +23,8 @@ def initialize_opentelemetry() -> None:
     # Suppress urllib3 debug logs (used by OTLP exporter) to prevent self-logging
     logging.getLogger("urllib3").setLevel(logging.INFO)
     logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
 
     otel_options = get_otel_options()
 
