@@ -22,7 +22,7 @@ def initialize_opentelemetry() -> None:
     logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    
+
     # Make sure toshutdown and gracefully flush the telemetry data on exit
     atexit.register(shutdown_otel)
 
