@@ -23,7 +23,7 @@ data:
   OAUTH_AUDIENCE: "https://cezzis-aisearch-api"
   OAUTH_WRITE_EMBEDDINGS_SCOPE: "write:embeddings"
   # kafka settings
-  KAFKA_BOOTSTRAP_SERVERS: "kafka-broker-1.kafka-platform.svc.cluster.local:19092"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-broker-1.kafka-platform.svc.cluster.local:19092,kafka-broker-2.kafka-platform.svc.cluster.local:19093,kafka-broker-3.kafka-platform.svc.cluster.local:19095"
   KAFKA_CONSUMER_GROUP: "cocktails-ingestion-embedding-agent-cloudsync"
   # embedding agent settings
   EMBEDDING_AGENT_ENABLED: "true"
