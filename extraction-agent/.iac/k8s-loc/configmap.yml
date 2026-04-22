@@ -11,7 +11,7 @@ metadata:
 data:
   ENV: "loc"
   # open telemetry / tracing settings
-  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.openobserve-platform.svc.cluster.local:4318"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.elastic-platform.svc.cluster.local:4318"
   OTEL_SERVICE_NAME: "cocktails-ingestion-extraction-agent"
   OTEL_SERVICE_NAMESPACE: "cezzis"
   OTEL_ENABLE_CONSOLE_LOGGING: "true"
