@@ -29,56 +29,6 @@ class TestLLMContentCleaner:
         assert graph_input["final_content"] is None
         assert graph_input["messages"] == []
 
-    def test_fetch_cocktail_node_extracts_content_and_builds_initial_prompt(self) -> None:
-        cleaner = object.__new__(LLMContentCleaner)
-        cleaner.fetch_tool = AsyncMock()
-        cleaner.fetch_tool.name = "get_cocktail"
-        cleaner.fetch_tool.ainvoke = AsyncMock(return_value={"item": {"id": "adonis", "content": "## Title"}})
-
-        result = asyncio.run(
-            cleaner._fetch_cocktail_node(
-                {
-                    "messages": [],
-                    "cocktail_id": "adonis",
-                    "cocktail_payload": None,
-                    "current_content": "",
-                    "completed_tools": [],
-                    "final_content": None,
-                }
-            )
-        )
-
-        cleaner.fetch_tool.ainvoke.assert_awaited_once_with({"id": "adonis"})
-        assert result["cocktail_payload"] == {"item": {"id": "adonis", "content": "## Title"}}
-        assert result["current_content"] == ""
-        assert result["completed_tools"] == ["get_cocktail"]
-        assert isinstance(result["messages"][0], SystemMessage)
-        assert isinstance(result["messages"][1], HumanMessage)
-        assert "Cocktail payload:" in result["messages"][1].content
-        assert '"content": "## Title"' in result["messages"][1].content
-
-    def test_fetch_cocktail_node_accepts_payload_without_content_field(self) -> None:
-        cleaner = object.__new__(LLMContentCleaner)
-        cleaner.fetch_tool = AsyncMock()
-        cleaner.fetch_tool.name = "get_cocktail"
-        cleaner.fetch_tool.ainvoke = AsyncMock(return_value={"item": {"id": "adonis"}})
-
-        result = asyncio.run(
-            cleaner._fetch_cocktail_node(
-                {
-                    "messages": [],
-                    "cocktail_id": "adonis",
-                    "cocktail_payload": None,
-                    "current_content": "",
-                    "completed_tools": [],
-                    "final_content": None,
-                }
-            )
-        )
-
-        assert result["cocktail_payload"] == {"item": {"id": "adonis"}}
-        assert result["current_content"] == ""
-
     def test_extract_plain_text_ignores_non_text_blocks(self) -> None:
         cleaner = object.__new__(LLMContentCleaner)
 
@@ -146,6 +96,10 @@ class TestLLMContentCleaner:
     def test_model_node_limits_tool_calls_to_one(self) -> None:
         cleaner = object.__new__(LLMContentCleaner)
         cleaner.langfuse_handler = cast(Any, object())
+        cleaner.processing_tools_by_name = {
+            "clean_markdown": object(),
+            "remove_html_tags": object(),
+        }
         cleaner.tool_enabled_llm = AsyncMock()
         cleaner.tool_enabled_llm.ainvoke = AsyncMock(
             return_value=AIMessage(
@@ -180,6 +134,49 @@ class TestLLMContentCleaner:
         assert len(ai_message.tool_calls) == 1
         assert ai_message.tool_calls[0]["name"] == "clean_markdown"
 
+    def test_model_node_uses_any_matching_tool_call_name(self) -> None:
+        cleaner = object.__new__(LLMContentCleaner)
+        cleaner.langfuse_handler = cast(Any, object())
+        cleaner.processing_tools_by_name = {"convert_to_plaintext": object()}
+        cleaner.tool_enabled_llm = AsyncMock()
+        cleaner.tool_enabled_llm.ainvoke = AsyncMock(
+            return_value=AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": "default_api:convert_to_plain_text",
+                        "args": {"content": "## Title"},
+                        "id": "call-1",
+                        "type": "tool_call",
+                    },
+                    {
+                        "name": "convert_to_plaintext",
+                        "args": {"content": "## Title"},
+                        "id": "call-2",
+                        "type": "tool_call",
+                    },
+                ],
+            )
+        )
+
+        result = asyncio.run(
+            cleaner._model_node(
+                {
+                    "messages": [HumanMessage(content="clean this")],
+                    "cocktail_id": "adonis",
+                    "cocktail_payload": None,
+                    "current_content": "## Title",
+                    "completed_tools": [],
+                    "final_content": None,
+                }
+            )
+        )
+
+        ai_message = result["messages"][0]
+        assert isinstance(ai_message, AIMessage)
+        assert len(ai_message.tool_calls) == 1
+        assert ai_message.tool_calls[0]["name"] == "convert_to_plaintext"
+
     def test_update_after_tool_adds_follow_up_prompt(self) -> None:
         cleaner = object.__new__(LLMContentCleaner)
         cleaner.processing_tools_by_name = {
@@ -202,7 +199,7 @@ class TestLLMContentCleaner:
         assert result["completed_tools"] == ["get_cocktail", "convert_to_plaintext"]
         assert isinstance(result["messages"][0], HumanMessage)
 
-    def test_update_after_tool_sets_final_content_when_cleaning_complete(self) -> None:
+    def test_update_after_tool_returns_to_model_after_processing_tool(self) -> None:
         cleaner = object.__new__(LLMContentCleaner)
         cleaner.processing_tools_by_name = {
             "convert_to_plaintext": object(),
@@ -220,9 +217,12 @@ class TestLLMContentCleaner:
             }
         )
 
-        assert result["final_content"] == "Title"
+        assert result["current_content"] == "Title"
+        assert result["completed_tools"] == ["get_cocktail", "convert_to_plaintext", "extract_title"]
+        assert isinstance(result["messages"][0], HumanMessage)
+        assert "final_content" not in result
 
-    def test_update_after_tool_sets_final_content_when_only_one_mcp_tool_is_available(self) -> None:
+    def test_update_after_tool_does_not_complete_after_single_processing_tool(self) -> None:
         cleaner = object.__new__(LLMContentCleaner)
         cleaner.processing_tools_by_name = {"convert_to_plaintext": object()}
 
@@ -239,4 +239,88 @@ class TestLLMContentCleaner:
 
         assert result["current_content"] == "Title"
         assert result["completed_tools"] == ["get_cocktail", "convert_to_plaintext"]
+        assert isinstance(result["messages"][0], HumanMessage)
+        assert "final_content" not in result
+
+    def test_update_after_tool_completes_when_repeated_tool_makes_no_progress(self) -> None:
+        cleaner = object.__new__(LLMContentCleaner)
+        cleaner.processing_tools_by_name = {"convert_to_plaintext": object()}
+
+        result = cleaner._update_after_tool(
+            {
+                "messages": [ToolMessage(content="Title", tool_call_id="call-2", name="convert_to_plaintext")],
+                "cocktail_id": "adonis",
+                "cocktail_payload": {"item": {"id": "adonis", "content": "## Title"}},
+                "current_content": "Title",
+                "completed_tools": ["get_cocktail", "convert_to_plaintext"],
+                "final_content": None,
+            }
+        )
+
+        assert result["current_content"] == "Title"
+        assert result["completed_tools"] == ["get_cocktail", "convert_to_plaintext", "convert_to_plaintext"]
         assert result["final_content"] == "Title"
+        assert "messages" not in result
+
+    def test_update_after_tool_allows_first_idempotent_tool_call(self) -> None:
+        cleaner = object.__new__(LLMContentCleaner)
+        cleaner.processing_tools_by_name = {"extract_title": object()}
+
+        result = cleaner._update_after_tool(
+            {
+                "messages": [ToolMessage(content="Title", tool_call_id="call-1", name="extract_title")],
+                "cocktail_id": "adonis",
+                "cocktail_payload": {"item": {"id": "adonis", "content": "## Title"}},
+                "current_content": "Title",
+                "completed_tools": ["get_cocktail"],
+                "final_content": None,
+            }
+        )
+
+        assert result["current_content"] == "Title"
+        assert result["completed_tools"] == ["get_cocktail", "extract_title"]
+        assert isinstance(result["messages"][0], HumanMessage)
+
+    def test_update_after_tool_completes_when_tool_name_is_unexpected(self) -> None:
+        cleaner = object.__new__(LLMContentCleaner)
+        cleaner.processing_tools_by_name = {"convert_to_plaintext": object()}
+
+        result = cleaner._update_after_tool(
+            {
+                "messages": [
+                    ToolMessage(content="Title", tool_call_id="call-3", name="default_api:convert_to_plain_text")
+                ],
+                "cocktail_id": "adonis",
+                "cocktail_payload": {"item": {"id": "adonis", "content": "## Title"}},
+                "current_content": "Title",
+                "completed_tools": ["get_cocktail", "convert_to_plaintext"],
+                "final_content": None,
+            }
+        )
+
+        assert result["current_content"] == "Title"
+        assert result["completed_tools"] == ["get_cocktail", "convert_to_plaintext"]
+        assert result["final_content"] == "Title"
+        assert "messages" not in result
+
+    def test_update_after_tool_raises_when_tool_iterations_exceed_limit(self) -> None:
+        cleaner = object.__new__(LLMContentCleaner)
+        cleaner.processing_tools_by_name = {"convert_to_plaintext": object()}
+
+        try:
+            cleaner._update_after_tool(
+                {
+                    "messages": [
+                        ToolMessage(content="Cleaned Title", tool_call_id="call-9", name="convert_to_plaintext")
+                    ],
+                    "cocktail_id": "adonis",
+                    "cocktail_payload": {"item": {"id": "adonis", "content": "## Title"}},
+                    "current_content": "Title",
+                    "completed_tools": ["convert_to_plaintext"] * cleaner._MAX_TOOL_ITERATIONS,
+                    "final_content": None,
+                }
+            )
+        except RuntimeError as exc:
+            assert "maximum number of tool iterations" in str(exc)
+        else:
+            raise AssertionError("Expected RuntimeError when tool iterations exceed the limit")

@@ -48,7 +48,6 @@ class LLMContentCleaner:
 
         self.tool_enabled_llm = None
         self.cleaning_graph = None
-        self.fetch_tool: Any | None = None
         self.processing_tools_by_name: dict[str, Any] = {}
 
     async def clean_content(self, cocktail_id: str) -> str | None:
@@ -74,40 +73,11 @@ class LLMContentCleaner:
                 "completed_tools": [],
                 "final_content": None,
             },
-            config={"callbacks": [self.langfuse_handler], "recursion_limit": self._MAX_TOOL_ITERATIONS * 3},
+            config={"callbacks": [self.langfuse_handler], "recursion_limit": self._MAX_TOOL_ITERATIONS * 3 + 1},
         )
 
         final_content = cast(str | None, result.get("final_content") or result.get("current_content") or None)
         return final_content
-
-    async def _fetch_cocktail_node(self, state: CleanerState) -> dict[str, Any]:
-        if self.fetch_tool is None:
-            raise RuntimeError("MCP get_cocktail tool is not initialized. Cannot retrieve cocktail content.")
-
-        cocktail_id = state["cocktail_id"]
-        tool_result = await self.fetch_tool.ainvoke({"cocktailId": cocktail_id})
-
-        if isinstance(tool_result, str):
-            tool_result = json.loads(tool_result)
-        elif isinstance(tool_result, list):
-            tool_result = json.loads("".join(part for part in tool_result if isinstance(part, str)))
-
-        if not isinstance(tool_result, dict):
-            raise RuntimeError("get_cocktail returned an invalid payload.")
-
-        return {
-            "messages": [
-                SystemMessage(content=extraction_sys_prompt.strip()),
-                HumanMessage(
-                    content=build_extraction_stepped_user_prompt(
-                        state.get("cocktail_id"), tool_result, "", [self.fetch_tool.name]
-                    )
-                ),
-            ],
-            "cocktail_payload": tool_result,
-            "current_content": "",
-            "completed_tools": [self.fetch_tool.name],
-        }
 
     async def _model_node(self, state: CleanerState) -> dict[str, Any]:
         if self.tool_enabled_llm is None:
@@ -134,12 +104,20 @@ class LLMContentCleaner:
             config={"callbacks": [self.langfuse_handler]},
         )
 
-        if ai_message.tool_calls:
-            if len(ai_message.tool_calls) > 1:
-                ai_message = ai_message.model_copy(update={"tool_calls": [ai_message.tool_calls[0]]})
+        valid_tool_calls = [
+            tool_call for tool_call in ai_message.tool_calls if tool_call.get("name") in self.processing_tools_by_name
+        ]
+        if valid_tool_calls:
+            if len(valid_tool_calls) > 1:
+                ai_message = ai_message.model_copy(update={"tool_calls": [valid_tool_calls[0]]})
+            else:
+                ai_message = ai_message.model_copy(update={"tool_calls": valid_tool_calls})
             return {"messages": [ai_message]}
 
-        return {"messages": [ai_message], "final_content": self._extract_plain_text(ai_message.content)}
+        if ai_message.content:
+            return {"messages": [ai_message], "final_content": self._extract_plain_text(ai_message.content)}
+        else:
+            return {"messages": [ai_message], "final_content": state.get("current_content")}
 
     def _route_after_model(self, state: CleanerState) -> str:
         if state.get("final_content"):
@@ -157,7 +135,13 @@ class LLMContentCleaner:
             return {}
 
         if last_message.name not in self.processing_tools_by_name:
-            raise RuntimeError(f"Received tool call for unexpected tool {last_message.name}.")
+            return {
+                "cocktail_id": state["cocktail_id"],
+                "cocktail_payload": state["cocktail_payload"],
+                "current_content": state["current_content"],
+                "completed_tools": list(state["completed_tools"]),
+                "final_content": state["current_content"],
+            }
 
         completed_tools = list(state["completed_tools"])
         updates: dict[str, Any] = {
@@ -177,10 +161,17 @@ class LLMContentCleaner:
             updates["current_content"] = ""
         else:
             updates["current_content"] = self._extract_plain_text(last_message.content) or state["current_content"]
+            if (
+                last_message.name is not None
+                and state["completed_tools"]
+                and state["completed_tools"][-1] == last_message.name
+                and state["current_content"] == updates["current_content"]
+            ):
+                updates["final_content"] = updates["current_content"]
+                return updates
 
-        if self._cleaning_complete(updates["completed_tools"]):
-            updates["final_content"] = updates["current_content"]
-            return updates
+        if self._processing_tool_call_count(updates["completed_tools"]) > self._MAX_TOOL_ITERATIONS:
+            raise RuntimeError("LLM cleaning exceeded the maximum number of tool iterations.")
 
         updates["messages"] = [
             HumanMessage(
@@ -200,19 +191,8 @@ class LLMContentCleaner:
 
         return "model"
 
-    def _cleaning_complete(self, completed_tools: list[str]) -> bool:
-        if not self.processing_tools_by_name:
-            return False
-
-        processing_completed = [
-            tool_name for tool_name in completed_tools if tool_name in self.processing_tools_by_name
-        ]
-
-        if len(self.processing_tools_by_name) == 1:
-            return bool(processing_completed)
-
-        required_tools = set(self.processing_tools_by_name)
-        return required_tools.issubset(set(processing_completed))
+    def _processing_tool_call_count(self, completed_tools: list[str]) -> int:
+        return sum(1 for tool_name in completed_tools if tool_name in self.processing_tools_by_name)
 
     def _extract_plain_text(self, result_content: object) -> str | None:
         if result_content is None:
@@ -267,10 +247,6 @@ class LLMContentCleaner:
         mcp_tools = await client.get_tools()
         mcp_tools_by_name = {tool.name: tool for tool in mcp_tools}
 
-        # self.fetch_tool = mcp_tools_by_name.get("get_cocktail")
-        # if self.fetch_tool is None:
-        #     raise RuntimeError("MCP server does not expose the required get_cocktail tool.")
-
         self.processing_tools_by_name = {
             tool_name: tool
             for tool_name, tool in mcp_tools_by_name.items()  # if tool_name != self.fetch_tool.name
@@ -282,12 +258,10 @@ class LLMContentCleaner:
         self.tool_enabled_llm = self.llm.bind_tools(processing_tools, tool_choice="any")
 
         workflow = StateGraph(CleanerState)
-        # workflow.add_node("fetch_cocktail", self._fetch_cocktail_node)
         workflow.add_node("model", self._model_node)
         workflow.add_node("tools", ToolNode(processing_tools))
         workflow.add_node("update_after_tool", self._update_after_tool)
         workflow.add_edge(START, "model")
-        # workflow.add_edge("fetch_cocktail", "model")
         workflow.add_conditional_edges("model", self._route_after_model, {"tools": "tools", "end": END})
         workflow.add_edge("tools", "update_after_tool")
         workflow.add_conditional_edges("update_after_tool", self._route_after_tool, {"model": "model", "end": END})

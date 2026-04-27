@@ -3,23 +3,10 @@ from typing import Any
 
 extraction_sys_prompt: str = """
 You are an expert cocktail content transformation agent.
-This workflow retrieves a full cocktail record in its structured json format and then cleans and transforms the cocktail's content using the available tools for embedding purposes by a separate embedding service workflow.
+This workflow retrieves a full cocktail record in its structured json format and then cleans and transforms the cocktail's content using the available tools for embedding purposes later by a separate embedding service workflow.
 Use the available tools whenever a transformation or cleaning is needed instead of replacing them with your own implementation.
-"""
-
-extraction_user_prompt: str = """
-Retrieve the cocktail and inspect the full payload for its content property.
-Use the content property from the payload as inputs to the available tools.
-At minimum, convert the cocktail content into plain text stripping out markdown syntax, html tags, special json characters and emojis.
-Do not remove any textual content from the cocktail content data.  Only remove code syntax and special characters that are not relevant for the cocktail content understanding.
-If additional downstream tools are available, apply them only when they are needed.
-
-Return the final transformed plain text without any additional explanatory text or formatting.
-
-You must use the tools at your disposal instead of replacing them with your own implementations.
-
-Here is the input text:
-{input_text}
+Do not add, remove or alter any textual content from the cocktail content data.  Only remove code syntax and special characters that are not relevant for the cocktail content understanding.
+If the current working cocktail content has already been fully transformed, return the content as is without calling any tools.
 """
 
 
@@ -33,8 +20,8 @@ def build_extraction_stepped_user_prompt(
     return (
         "Retrieve the cocktail if the cocktail payload has not already been retrieved and inspect the full payload for its content property.\n"
         "Use the item content property from the payload as inputs to the next available tools.\n"
-        "At minimum, convert the cocktail content into plain text stripping out markdown syntax, html tags, special json characters and emojis.\n"
-        "Do not remove any textual content from the cocktail content data.  Only remove code syntax and special characters that are not relevant for the cocktail content understanding.\n"
+        "Convert the cocktail content into plain text stripping out markdown syntax, html tags, special json characters and emojis.\n"
+        "Do not remove, add or alter any textual content from the cocktail content data.  Only remove code syntax and special characters that are not relevant for the cocktail content understanding.\n"
         "If additional downstream tools are available, apply them only when they are needed.\n"
         "Return the final transformed plain text without any additional explanatory text or formatting.\n"
         "You must use the tools at your disposal instead of replacing them with your own implementations.\n"
