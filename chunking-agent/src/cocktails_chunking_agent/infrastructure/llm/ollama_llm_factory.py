@@ -26,6 +26,7 @@ class OllamaLLMFactory:
 
         return ChatOllama(
             name=name,
+            disable_streaming=self.llm_model_options.disable_streaming,
             verbose=self.llm_model_options.verbose or False,
             model=self.llm_model_options.model,
             base_url=self.llm_options.llm_host,

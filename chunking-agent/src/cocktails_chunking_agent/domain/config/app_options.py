@@ -16,6 +16,13 @@ class AppOptions(BaseSettings):
         max_poll_interval_ms (int): Maximum poll interval in milliseconds.
         auto_offset_reset (str): Kafka auto offset reset policy.
         llm_model (str): The LLM model to use for chunking.
+        llm_model_temperature (float): Temperature setting for the LLM model.
+        llm_model_num_ctx (int): Number of context tokens for the LLM model.
+        llm_model_disable_streaming (bool): Whether to disable streaming for the LLM model.
+        llm_model_num_predict (int): Number of tokens to predict for the LLM model.
+        llm_model_log_verbose (bool): Whether to enable verbose logging for the LLM model.
+        llm_model_timeout_seconds (int): Timeout in seconds for LLM model execution.
+        llm_model_reasoning (bool): Whether to enable reasoning mode for the LLM model.
         log_dir (str): Directory to store log files.
     """
 
@@ -30,6 +37,18 @@ class AppOptions(BaseSettings):
     auto_offset_reset: str = Field(default="earliest", validation_alias="CHUNKING_AGENT_KAFKA_AUTO_OFFSET_RESET")
     results_topic_name: str = Field(default="", validation_alias="CHUNKING_AGENT_KAFKA_RESULTS_TOPIC_NAME")
     llm_model: str = Field(default="", validation_alias="CHUNKING_AGENT_LLM_MODEL")
+    llm_model_temperature: float = Field(default=0.3, validation_alias="CHUNKING_AGENT_LLM_MODEL_TEMPERATURE")
+    llm_model_num_ctx: int | None = Field(default=None, validation_alias="CHUNKING_AGENT_LLM_MODEL_NUM_CTX")
+    llm_model_disable_streaming: bool = Field(
+        default=False, validation_alias="CHUNKING_AGENT_LLM_MODEL_DISABLE_STREAMING"
+    )
+    llm_model_num_predict: int = Field(default=2048, validation_alias="CHUNKING_AGENT_LLM_MODEL_NUM_PREDICT")
+    llm_model_log_verbose: bool = Field(default=False, validation_alias="CHUNKING_AGENT_LLM_MODEL_LOG_VERBOSE")
+    llm_model_timeout_seconds: int = Field(
+        default=60,
+        validation_alias="CHUNKING_AGENT_LLM_MODEL_TIMEOUT_SECONDS",
+    )
+    llm_model_reasoning: bool = Field(default=False, validation_alias="CHUNKING_AGENT_LLM_MODEL_REASONING")
     log_dir: str = Field(default="", validation_alias="CHUNKING_AGENT_LOG_DIR")
 
 
@@ -57,6 +76,10 @@ def get_app_options() -> AppOptions:
             raise ValueError("CHUNKING_AGENT_KAFKA_NUM_CONSUMERS environment variable must be a positive integer")
         if not _app_options.llm_model:
             raise ValueError("CHUNKING_AGENT_LLM_MODEL environment variable is required")
+        if _app_options.llm_model_temperature < 0.0 or _app_options.llm_model_temperature > 1.0:
+            raise ValueError("CHUNKING_AGENT_LLM_MODEL_TEMPERATURE environment variable must be between 0.0 and 1.0")
+        if _app_options.llm_model_num_ctx and _app_options.llm_model_num_ctx < 1:
+            raise ValueError("CHUNKING_AGENT_LLM_MODEL_NUM_CTX environment variable must be a positive integer")
         if _app_options.auto_offset_reset not in ("earliest", "latest", "none"):
             raise ValueError(
                 "CHUNKING_AGENT_KAFKA_AUTO_OFFSET_RESET environment variable must be one of: 'earliest', 'latest', 'none'"

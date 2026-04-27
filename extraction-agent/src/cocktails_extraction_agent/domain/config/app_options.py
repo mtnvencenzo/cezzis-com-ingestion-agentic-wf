@@ -19,6 +19,15 @@ class AppOptions(BaseSettings):
         llm_model (str): LLM model to use for extraction.
         llm_model_temperature (float): Temperature setting for the LLM model.
         llm_model_num_ctx (int): Number of context tokens for the LLM model.
+        llm_model_disable_streaming (bool): Whether to disable streaming for the LLM model.
+        llm_model_num_predict (int): Number of tokens to predict for the LLM model.
+        llm_model_log_verbose (bool): Whether to enable verbose logging for the LLM model.
+        llm_graph_timeout_seconds (int): Timeout in seconds for LLM graph execution.
+        llm_model_reasoning (bool): Whether to enable reasoning mode for the LLM model.
+        llm_mcp_url (str): URL for the LLM MCP server.
+        llm_mcp_transport (Literal): Transport method for communicating with the LLM MCP server.
+        llm_mcp_xkey (str): X-Key for authenticating with the LLM MCP server.
+        use_llm (bool): Flag to indicate whether to use the LLM for extraction or not.
     """
 
     model_config = SettingsConfigDict(
