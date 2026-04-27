@@ -10,17 +10,14 @@ metadata:
     argocd.argoproj.io/sync-wave: "100"
 data:
   ENV: "loc"
-  # open telemetry / tracing settings
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.elastic-platform.svc.cluster.local:4318"
   OTEL_SERVICE_NAME: "cocktails-ingestion-chunking-agent"
   OTEL_SERVICE_NAMESPACE: "cezzis"
   OTEL_ENABLE_CONSOLE_LOGGING: "true"
   OTEL_ENABLE_TRACING: "true"
   OTEL_ENABLE_LOGGING: "true"
-  # kafka settings
   KAFKA_BOOTSTRAP_SERVERS: "kafka-broker-1.kafka-platform.svc.cluster.local:19092,kafka-broker-2.kafka-platform.svc.cluster.local:19093,kafka-broker-3.kafka-platform.svc.cluster.local:19095"
   KAFKA_CONSUMER_GROUP: "cocktails-ingestion-chunking-agent"
-  # chunking agent settings
   CHUNKING_AGENT_ENABLED: "true"
   CHUNKING_AGENT_KAFKA_TOPIC_NAME: "cocktails-ingestion-extraction-results-loc"
   CHUNKING_AGENT_KAFKA_NUM_CONSUMERS: "1"
@@ -28,8 +25,14 @@ data:
   CHUNKING_AGENT_KAFKA_MAX_POLL_INTERVAL_MS: "1200000"
   CHUNKING_AGENT_KAFKA_AUTO_OFFSET_RESET: "earliest"
   CHUNKING_AGENT_LLM_MODEL: "gemma4:31b"
+  CHUNKING_AGENT_LLM_MODEL_TEMPERATURE: "0.0"
+  CHUNKING_AGENT_LLM_MODEL_NUM_CTX: "4096"
+  CHUNKING_AGENT_LLM_MODEL_DISABLE_STREAMING: "true"
+  CHUNKING_AGENT_LLM_MODEL_NUM_PREDICT: "3072"
+  CHUNKING_AGENT_LLM_MODEL_LOG_VERBOSE: "false"
+  CHUNKING_AGENT_LLM_MODEL_TIMEOUT_SECONDS: "90"
+  CHUNKING_AGENT_LLM_MODEL_REASONING: "false"
   CHUNKING_AGENT_LOG_DIR: ""
-  # llm and langfuse settings 
   LLM_HOST: "http://ollama-host.ai-platform.svc.cluster.local:11434"
   LANGFUSE_PUBLIC_KEY: "pk-lf-2a7a9459-d479-4f71-a904-48fe1e541675"
   LANGFUSE_BASE_URL: "https://us.cloud.langfuse.com"
