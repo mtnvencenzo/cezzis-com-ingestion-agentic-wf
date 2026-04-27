@@ -27,7 +27,7 @@ data:
   CHUNKING_AGENT_KAFKA_RESULTS_TOPIC_NAME: "cocktails-ingestion-chunking-results-cloudsync"
   CHUNKING_AGENT_KAFKA_MAX_POLL_INTERVAL_MS: "1200000"
   CHUNKING_AGENT_KAFKA_AUTO_OFFSET_RESET: "earliest"
-  CHUNKING_AGENT_LLM_MODEL: "cocktail-pro"
+  CHUNKING_AGENT_LLM_MODEL: "gemma4:31b"
   CHUNKING_AGENT_LOG_DIR: ""
   # llm and langfuse settings
   LLM_HOST: "http://ollama-host.ai-platform.svc.cluster.local:11434"

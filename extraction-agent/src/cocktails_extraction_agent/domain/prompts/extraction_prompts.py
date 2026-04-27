@@ -1,16 +1,50 @@
+import json
+from typing import Any
+
 extraction_sys_prompt: str = """
-You are an expert text cleaning agent tasked with removing all markdown formatting, HTML tags, emojis and special JSON characters from the provided text.
-You have several tools at your disposal to accomplish this task effectively.
+You are an expert cocktail content transformation agent.
+This workflow retrieves a full cocktail record in its structured json format and then cleans and transforms the cocktail's content using the available tools for embedding purposes by a separate embedding service workflow.
+Use the available tools whenever a transformation or cleaning is needed instead of replacing them with your own implementation.
 """
 
 extraction_user_prompt: str = """
-Remove markdown formatting from the input text.
-Remove HTML tags from the results of removing the markdown.
-Remove emojis from the results of removing the HTML tags.
-Remove special JSON characters from the results of removing the emojis.
+Retrieve the cocktail and inspect the full payload for its content property.
+Use the content property from the payload as inputs to the available tools.
+At minimum, convert the cocktail content into plain text stripping out markdown syntax, html tags, special json characters and emojis.
+Do not remove any textual content from the cocktail content data.  Only remove code syntax and special characters that are not relevant for the cocktail content understanding.
+If additional downstream tools are available, apply them only when they are needed.
 
-Return the fully cleaned plain text without any additional explanatory text or additional formatting.
+Return the final transformed plain text without any additional explanatory text or formatting.
+
+You must use the tools at your disposal instead of replacing them with your own implementations.
 
 Here is the input text:
 {input_text}
 """
+
+
+def build_extraction_stepped_user_prompt(
+    cocktail_id: str, cocktail_payload: dict[str, Any] | None, current_content: str, completed_tools: list[str]
+) -> str:
+    completed_summary = ", ".join(completed_tools) if completed_tools else "none"
+    payload_text = json.dumps(cocktail_payload, ensure_ascii=True, indent=2) if cocktail_payload is not None else "none"
+    current_content_text = current_content or "none"
+
+    return (
+        "Retrieve the cocktail if the cocktail payload has not already been retrieved and inspect the full payload for its content property.\n"
+        "Use the item content property from the payload as inputs to the next available tools.\n"
+        "At minimum, convert the cocktail content into plain text stripping out markdown syntax, html tags, special json characters and emojis.\n"
+        "Do not remove any textual content from the cocktail content data.  Only remove code syntax and special characters that are not relevant for the cocktail content understanding.\n"
+        "If additional downstream tools are available, apply them only when they are needed.\n"
+        "Return the final transformed plain text without any additional explanatory text or formatting.\n"
+        "You must use the tools at your disposal instead of replacing them with your own implementations.\n"
+        "\n"
+        f"Completed tools so far: {completed_summary}.\n\n"
+        "If the result is already fully transformed, return only the final plain text and do not call a tool.\n\n"
+        "Here is the cocktail id:\n"
+        f"{cocktail_id or 'none'}\n\n"
+        "Here is the json cocktail payload:\n"
+        f"{payload_text}\n\n"
+        "Here is the current working content:\n"
+        f"{current_content_text}"
+    )

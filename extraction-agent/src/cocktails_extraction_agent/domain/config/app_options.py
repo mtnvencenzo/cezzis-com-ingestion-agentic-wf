@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -16,6 +17,8 @@ class AppOptions(BaseSettings):
         max_poll_interval_ms (int): Maximum poll interval in milliseconds for Kafka consumers.
         auto_offset_reset (str): Auto offset reset policy for Kafka consumers.
         llm_model (str): LLM model to use for extraction.
+        llm_model_temperature (float): Temperature setting for the LLM model.
+        llm_model_num_ctx (int): Number of context tokens for the LLM model.
     """
 
     model_config = SettingsConfigDict(
@@ -29,6 +32,20 @@ class AppOptions(BaseSettings):
     max_poll_interval_ms: int = Field(default=300000, validation_alias="EXTRACTION_AGENT_KAFKA_MAX_POLL_INTERVAL_MS")
     auto_offset_reset: str = Field(default="earliest", validation_alias="EXTRACTION_AGENT_KAFKA_AUTO_OFFSET_RESET")
     llm_model: str = Field(default="", validation_alias="EXTRACTION_AGENT_LLM_MODEL")
+    llm_model_temperature: float = Field(default=0.3, validation_alias="EXTRACTION_AGENT_LLM_MODEL_TEMPERATURE")
+    llm_model_num_ctx: int | None = Field(default=None, validation_alias="EXTRACTION_AGENT_LLM_MODEL_NUM_CTX")
+    llm_model_disable_streaming: bool = Field(
+        default=False, validation_alias="EXTRACTION_AGENT_LLM_MODEL_DISABLE_STREAMING"
+    )
+    llm_model_num_predict: int = Field(default=-1, validation_alias="EXTRACTION_AGENT_LLM_MODEL_NUM_PREDICT")
+    llm_model_log_verbose: bool = Field(default=False, validation_alias="EXTRACTION_AGENT_LLM_MODEL_LOG_VERBOSE")
+    llm_model_timeout_seconds: int = Field(default=60, validation_alias="EXTRACTION_AGENT_LLM_MODEL_TIMEOUT_SECONDS")
+    llm_model_reasoning: bool = Field(default=False, validation_alias="EXTRACTION_AGENT_LLM_MODEL_REASONING")
+    llm_mcp_url: str = Field(default="", validation_alias="EXTRACTION_AGENT_LLM_MCP_URL")
+    llm_mcp_transport: Literal["stdio", "sse", "streamable_http", "websocket"] = Field(
+        default="streamable_http", validation_alias="EXTRACTION_AGENT_LLM_MCP_TRANSPORT"
+    )
+    llm_mcp_xkey: str = Field(default="", validation_alias="EXTRACTION_AGENT_LLM_MCP_XKEY")
     use_llm: bool = Field(default=False, validation_alias="EXTRACTION_AGENT_USE_LLM")
 
 
@@ -56,6 +73,14 @@ def get_app_options() -> AppOptions:
             raise ValueError("EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS environment variable must be a positive integer")
         if not _app_options.llm_model:
             raise ValueError("EXTRACTION_AGENT_LLM_MODEL environment variable is required")
+        if _app_options.llm_model_temperature < 0.0 or _app_options.llm_model_temperature > 1.0:
+            raise ValueError("EXTRACTION_AGENT_LLM_MODEL_TEMPERATURE environment variable must be between 0.0 and 1.0")
+        if _app_options.llm_model_num_ctx and _app_options.llm_model_num_ctx < 1:
+            raise ValueError("EXTRACTION_AGENT_LLM_MODEL_NUM_CTX environment variable must be a positive integer")
+        if _app_options.use_llm and not _app_options.llm_mcp_url:
+            raise ValueError(
+                "EXTRACTION_AGENT_LLM_MCP_URL environment variable is required when EXTRACTION_AGENT_USE_LLM is true"
+            )
         if _app_options.auto_offset_reset not in ("earliest", "latest", "none"):
             raise ValueError(
                 "EXTRACTION_AGENT_KAFKA_AUTO_OFFSET_RESET environment variable must be one of: earliest, latest, none"

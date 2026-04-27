@@ -87,6 +87,25 @@ class TestAppOptions:
         with pytest.raises(ValueError, match="EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME.*required"):
             get_app_options()
 
+    @pytest.mark.usefixtures("clear_settings_cache")
+    def test_settings_raises_error_when_llm_mcp_transport_is_invalid(
+        self,
+        mock_env_vars: Dict[str, str],
+        clear_settings_cache: Any,
+        mocker: MockerFixture,
+    ) -> None:
+        mocker.patch.dict(
+            "os.environ",
+            {
+                **mock_env_vars,
+                "EXTRACTION_AGENT_LLM_MCP_TRANSPORT": "http",
+            },
+            clear=True,
+        )
+
+        with pytest.raises(ValueError, match="stdio|sse|streamable_http|websocket"):
+            get_app_options()
+
     def test_settings_raises_error_when_model_missing(
         self,
         mock_env_vars: Dict[str, str],

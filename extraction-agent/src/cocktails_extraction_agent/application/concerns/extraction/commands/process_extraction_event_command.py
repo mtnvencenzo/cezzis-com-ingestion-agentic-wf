@@ -67,7 +67,7 @@ class ProcessExtractionEventCommandHandler:
             result_content = await remove_emojis.ainvoke(result_content or "")
             result_content = await remove_special_json_characters.ainvoke(result_content or "")
         else:
-            result_content = await self.llm_content_cleaner.clean_content(command.model.content or "")
+            result_content = await self.llm_content_cleaner.clean_content(command.model.id)
 
         # Take the cleaned content and create the extraction model
         extraction_model = CocktailExtractionModel(

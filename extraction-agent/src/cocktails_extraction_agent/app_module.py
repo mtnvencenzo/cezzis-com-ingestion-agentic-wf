@@ -32,11 +32,13 @@ class AppModule(Module):
 
         llm_model_options = LLMModelOptions(
             model=app_options.llm_model,
-            temperature=0.0,
-            num_predict=-1,
-            verbose=True,
-            timeout_seconds=30,
-            reasoning=False,
+            temperature=app_options.llm_model_temperature,
+            num_ctx=app_options.llm_model_num_ctx,
+            num_predict=app_options.llm_model_num_predict,
+            verbose=app_options.llm_model_log_verbose,
+            disable_streaming=app_options.llm_model_disable_streaming,
+            timeout_seconds=app_options.llm_model_timeout_seconds,
+            reasoning=app_options.llm_model_reasoning,
         )
 
         binder.bind(Mediator, Mediator(handler_class_manager=mediator_manager), scope=singleton)
