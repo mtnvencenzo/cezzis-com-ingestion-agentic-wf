@@ -1,3 +1,4 @@
+import asyncio
 import json
 from typing import Annotated, Any, TypedDict, cast
 
@@ -43,6 +44,7 @@ class LLMContentCleaner:
             app_options (AppOptions): The application options instance.
         """
         self.llm = ollama_llm_factory.get_ollama_chat(name=f"clean_content [{llm_model_options.model}]")
+        self.llm_model_options = llm_model_options
         self.langfuse_handler = CallbackHandler(update_trace=True)
         self.app_options = app_options
 
@@ -64,7 +66,8 @@ class LLMContentCleaner:
         if self.cleaning_graph is None:
             raise RuntimeError("LLM cleaning graph is not initialized. Cannot clean content.")
 
-        result = await self.cleaning_graph.ainvoke(
+        graph_input = cast(
+            CleanerState,
             {
                 "messages": [],
                 "cocktail_id": cocktail_id,
@@ -73,8 +76,20 @@ class LLMContentCleaner:
                 "completed_tools": [],
                 "final_content": None,
             },
-            config={"callbacks": [self.langfuse_handler], "recursion_limit": self._MAX_TOOL_ITERATIONS * 3 + 1},
         )
+        graph_config = cast(
+            Any, {"callbacks": [self.langfuse_handler], "recursion_limit": self._MAX_TOOL_ITERATIONS * 3 + 1}
+        )
+        graph_timeout_seconds = self.llm_model_options.graph_timeout_seconds
+
+        try:
+            if graph_timeout_seconds is None:
+                result = await self.cleaning_graph.ainvoke(graph_input, config=graph_config)
+            else:
+                async with asyncio.timeout(graph_timeout_seconds):
+                    result = await self.cleaning_graph.ainvoke(graph_input, config=graph_config)
+        except TimeoutError as exc:
+            raise RuntimeError(f"LLM cleaning timed out after {graph_timeout_seconds} seconds.") from exc
 
         final_content = cast(str | None, result.get("final_content") or result.get("current_content") or None)
         return final_content

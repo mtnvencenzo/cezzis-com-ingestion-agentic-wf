@@ -37,7 +37,7 @@ class AppModule(Module):
             num_predict=app_options.llm_model_num_predict,
             verbose=app_options.llm_model_log_verbose,
             disable_streaming=app_options.llm_model_disable_streaming,
-            timeout_seconds=app_options.llm_model_timeout_seconds,
+            graph_timeout_seconds=app_options.llm_graph_timeout_seconds,
             reasoning=app_options.llm_model_reasoning,
         )
 

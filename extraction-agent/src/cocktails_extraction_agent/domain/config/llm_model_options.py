@@ -26,8 +26,8 @@ class LLMModelOptions:
     If False (Default), will always use streaming case if available.
     The main reason for this flag is that code might be written using stream and a user may want to swap out a given model for another model whose implementation does not properly support streaming."""
 
-    timeout_seconds: int | None = 30
-    """Timeout for requests to the model."""
+    graph_timeout_seconds: int | None = 30
+    """Wall-clock timeout for the full cleaning graph invocation."""
 
     verbose: bool | None = None
     """Whether to enable verbose logging."""

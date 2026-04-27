@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
+from cocktails_extraction_agent.domain.config.llm_model_options import LLMModelOptions
 from cocktails_extraction_agent.infrastructure.llm.llm_content_cleaner import LLMContentCleaner
 
 
@@ -11,6 +12,7 @@ class TestLLMContentCleaner:
     def test_clean_content_invokes_graph_and_returns_final_content(self) -> None:
         cleaner = object.__new__(LLMContentCleaner)
         cleaner.langfuse_handler = cast(Any, object())
+        cleaner.llm_model_options = LLMModelOptions(model="gemma4:31b", graph_timeout_seconds=60)
         cleaner._initialize_mcp_agent = AsyncMock()
         cleaner.cleaning_graph = AsyncMock()
         cleaner.cleaning_graph.ainvoke = AsyncMock(return_value={"final_content": "Title", "current_content": "Title"})
@@ -28,6 +30,25 @@ class TestLLMContentCleaner:
         assert graph_input["completed_tools"] == []
         assert graph_input["final_content"] is None
         assert graph_input["messages"] == []
+
+    def test_clean_content_raises_runtime_error_when_graph_times_out(self) -> None:
+        cleaner = object.__new__(LLMContentCleaner)
+        cleaner.langfuse_handler = cast(Any, object())
+        cleaner.llm_model_options = LLMModelOptions(model="gemma4:31b", graph_timeout_seconds=0.001)
+        cleaner._initialize_mcp_agent = AsyncMock()
+        cleaner.cleaning_graph = AsyncMock()
+
+        async def never_return(*args, **kwargs):
+            await asyncio.Future()
+
+        cleaner.cleaning_graph.ainvoke = AsyncMock(side_effect=never_return)
+
+        try:
+            asyncio.run(cleaner.clean_content("adonis"))
+        except RuntimeError as exc:
+            assert str(exc) == "LLM cleaning timed out after 0.001 seconds."
+        else:
+            raise AssertionError("Expected clean_content to raise RuntimeError on timeout")
 
     def test_extract_plain_text_ignores_non_text_blocks(self) -> None:
         cleaner = object.__new__(LLMContentCleaner)

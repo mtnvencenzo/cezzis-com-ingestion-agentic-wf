@@ -33,6 +33,8 @@ class TestAppOptions:
         assert options_instance.results_topic_name == "test-topic-results"
         assert options_instance.num_consumers == 1
         assert options_instance.enabled is True
+        assert options_instance.llm_model_num_predict == 2048
+        assert options_instance.llm_graph_timeout_seconds == 60
 
     @pytest.mark.usefixtures("clear_settings_cache")
     def test_settings_raises_error_when_consumer_topic_name_missing(
@@ -152,6 +154,8 @@ class TestAppOptions:
             assert settings.results_topic_name == "file-topic-results"
             assert settings.num_consumers == 2
             assert settings.llm_model == "hermes3-llama3.2:3b Q3_K_S"
+            assert settings.llm_model_num_predict == 2048
+            assert settings.llm_graph_timeout_seconds == 60
         finally:
             os.chdir(original_dir)
 

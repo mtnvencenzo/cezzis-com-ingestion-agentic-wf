@@ -37,9 +37,12 @@ class AppOptions(BaseSettings):
     llm_model_disable_streaming: bool = Field(
         default=False, validation_alias="EXTRACTION_AGENT_LLM_MODEL_DISABLE_STREAMING"
     )
-    llm_model_num_predict: int = Field(default=-1, validation_alias="EXTRACTION_AGENT_LLM_MODEL_NUM_PREDICT")
+    llm_model_num_predict: int = Field(default=2048, validation_alias="EXTRACTION_AGENT_LLM_MODEL_NUM_PREDICT")
     llm_model_log_verbose: bool = Field(default=False, validation_alias="EXTRACTION_AGENT_LLM_MODEL_LOG_VERBOSE")
-    llm_model_timeout_seconds: int = Field(default=60, validation_alias="EXTRACTION_AGENT_LLM_MODEL_TIMEOUT_SECONDS")
+    llm_graph_timeout_seconds: int = Field(
+        default=60,
+        validation_alias="EXTRACTION_AGENT_LLM_GRAPH_TIMEOUT_SECONDS",
+    )
     llm_model_reasoning: bool = Field(default=False, validation_alias="EXTRACTION_AGENT_LLM_MODEL_REASONING")
     llm_mcp_url: str = Field(default="", validation_alias="EXTRACTION_AGENT_LLM_MCP_URL")
     llm_mcp_transport: Literal["stdio", "sse", "streamable_http", "websocket"] = Field(
