@@ -37,7 +37,7 @@ data:
   EXTRACTION_AGENT_LLM_MODEL_REASONING: "false"
   EXTRACTION_AGENT_LLM_MCP_URL: "https://www.cezzis.com/prd/cocktails/mcp/v1/mcp"
   EXTRACTION_AGENT_LLM_MCP_TRANSPORT: "streamable_http"
-  EXTRACTION_AGENT_USE_LLM: "true"
+  EXTRACTION_AGENT_USE_LLM: "false"
   # llm and langfuse settings
   LLM_HOST: "http://ollama-host.ai-platform.svc.cluster.local:11434"
   LANGFUSE_PUBLIC_KEY: "pk-lf-2a7a9459-d479-4f71-a904-48fe1e541675"
