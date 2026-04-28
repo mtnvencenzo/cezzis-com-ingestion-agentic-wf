@@ -1,6 +1,5 @@
 import json
 import logging
-import re
 import time
 from typing import Any, List, cast
 
@@ -88,9 +87,9 @@ class LLMContentChunker:
             return None
 
         try:
-            array_result = self._parse_and_validate_chunk_result(result_content, extraction_text, cocktail_id)
+            array_result = json.loads(result_content)
             return [CocktailDescriptionChunk(**item) for item in array_result]
-        except (json.JSONDecodeError, ValueError) as e:
+        except json.JSONDecodeError as e:
             self._logger.warning(
                 "Initial chunking output validation failed, attempting to fix the output.",
                 extra={"error": str(e), "cocktail_id": cocktail_id},
@@ -115,9 +114,9 @@ class LLMContentChunker:
                 return None
 
             try:
-                array_result = self._parse_and_validate_chunk_result(result_content_retry, extraction_text, cocktail_id)
+                array_result = json.loads(result_content_retry)
                 return [CocktailDescriptionChunk(**item) for item in array_result]
-            except:
+            except json.JSONDecodeError as e:
                 self._log_content_json(cocktail_id, result_content_retry)
                 raise
         except:
@@ -137,13 +136,6 @@ class LLMContentChunker:
             return str(result_content)
 
         return result_content
-
-    def _parse_and_validate_chunk_result(
-        self, result_content: str, extraction_text: str, cocktail_id: str
-    ) -> list[dict[str, str]]:
-        array_result = json.loads(result_content)
-        self._validate_chunk_output(array_result, extraction_text, cocktail_id)
-        return cast(list[dict[str, str]], array_result)
 
     def _build_langfuse_config(
         self,
@@ -167,89 +159,6 @@ class LLMContentChunker:
             "callbacks": [self.langfuse_handler],
             "metadata": metadata,
         }
-
-    def _validate_chunk_output(self, array_result: Any, extraction_text: str, cocktail_id: str) -> None:
-        if not isinstance(array_result, list):
-            raise ValueError("Chunking output must be a JSON array")
-
-        invalid_shapes: list[str] = []
-        invalid_categories: list[str] = []
-        content_type_errors: list[str] = []
-        reconstructed_parts: list[str] = []
-
-        for item in array_result:
-            if not isinstance(item, dict):
-                invalid_shapes.append("<non-object>")
-                continue
-
-            if set(item.keys()) != {"category", "content"}:
-                invalid_shapes.append(str(sorted(item.keys())))
-
-            category = item.get("category")
-            content = item.get("content")
-
-            if not isinstance(category, str) or category not in ALLOWED_CHUNK_CATEGORIES:
-                invalid_categories.append(str(category))
-
-            if not isinstance(content, str):
-                content_type_errors.append(str(type(content).__name__))
-                continue
-
-            reconstructed_parts.append(content)
-
-        invalid_shapes = sorted(set(invalid_shapes))
-        if invalid_shapes:
-            self._logger.warning(
-                "Chunking output contained invalid object shapes.",
-                extra={"cocktail_id": cocktail_id, "invalid_shapes": invalid_shapes},
-            )
-            raise ValueError(f"Chunking output contained invalid object shapes: {invalid_shapes}")
-
-        invalid_categories = sorted(set(invalid_categories))
-        if invalid_categories:
-            self._logger.warning(
-                "Chunking output contained invalid categories.",
-                extra={"cocktail_id": cocktail_id, "invalid_categories": invalid_categories},
-            )
-            raise ValueError(f"Chunking output contained invalid categories: {invalid_categories}")
-
-        content_type_errors = sorted(set(content_type_errors))
-        if content_type_errors:
-            self._logger.warning(
-                "Chunking output contained non-string content fields.",
-                extra={"cocktail_id": cocktail_id, "content_type_errors": content_type_errors},
-            )
-            raise ValueError(f"Chunking output contained non-string content fields: {content_type_errors}")
-
-        reconstructed_text = "".join(reconstructed_parts)
-        normalized_expected_text = self._normalize_text_for_validation(extraction_text)
-        normalized_reconstructed_text = self._normalize_text_for_validation(reconstructed_text)
-
-        if normalized_reconstructed_text != normalized_expected_text:
-            mismatch_index = self._first_mismatch_index(normalized_expected_text, normalized_reconstructed_text)
-            self._logger.warning(
-                "Chunking output content did not reconstruct the original source text.",
-                extra={
-                    "cocktail_id": cocktail_id,
-                    "mismatch_index": mismatch_index,
-                    "expected_length": len(normalized_expected_text),
-                    "actual_length": len(normalized_reconstructed_text),
-                },
-            )
-            raise ValueError(
-                "Chunking output content did not exactly match the original source text in order and completeness"
-            )
-
-    def _normalize_text_for_validation(self, text: str) -> str:
-        normalized_line_endings = text.replace("\r\n", "\n").replace("\r", "\n")
-        return re.sub(r"[ \t]*\n+[ \t]*", " ", normalized_line_endings)
-
-    def _first_mismatch_index(self, expected_text: str, actual_text: str) -> int:
-        for index, (expected_char, actual_char) in enumerate(zip(expected_text, actual_text)):
-            if expected_char != actual_char:
-                return index
-
-        return min(len(expected_text), len(actual_text))
 
     def _log_content_json(self, cocktail_id: str, result_content: str) -> None:
         """Logs the content JSON in chunks to avoid exceeding log size limits."""
