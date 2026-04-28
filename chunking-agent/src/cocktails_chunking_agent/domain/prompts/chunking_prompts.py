@@ -24,10 +24,11 @@ Rules:
 3. Do not omit text.
 4. Do not duplicate text.
 5. Preserve original wording, punctuation, capitalization, spelling, numbers, measurements, and line breaks exactly.
-6. Keep text in the same order as the source.
-7. Do not split a single sentence across multiple categories.
-8. You may group consecutive sentences into one content field if they belong to the same category.
-9. If one category needs multiple entries, create multiple objects with the same category. Do not rename the category.
+6. Prefer one object per category. If multiple parts of the source belong to the same category, combine them into that category's content.
+7. Keep the original order of text within each category's combined content.
+8. Do not split a single sentence across multiple categories.
+9. Section headings and labels belong to the same category as the content they introduce. Include the heading text in that category's content and do not emit standalone heading-only chunks.
+10. If a category would become too large for downstream embedding, you may create multiple objects with the same category, but only split at natural boundaries such as section headings or paragraph breaks.
 
 Tie-break rules:
 - ingredients: ingredient names, amounts, ratios, garnish ingredients, and recipe components
@@ -36,8 +37,8 @@ Tie-break rules:
 - flavor_profile: taste, aroma, texture, balance, or finish
 - occasions: season, holiday, event, celebration, time, or setting for drinking
 - suggestions: serving advice, pairings, recommendations, or bartender tips
-- historical_and_geographical: origin, place, era, inventor claims, cultural history, or evolution
-- famous_references: notable people, venues, brands, films, books, songs, or media references
+- historical_and_geographical: origin, place, era, inventor claims, cultural history, or evolution when the text is primarily about historical development or geography
+- famous_references: notable people, venues, brands, institutions, films, books, songs, shows, or media references. Prefer this category over historical_and_geographical when named references are central to the text span
 - variations: alternate versions, substitutions, or adaptations
 - other: use only if none of the above apply
 
@@ -54,6 +55,8 @@ Before answering, verify:
 - no source text was changed
 - no source text was omitted
 - no source text was duplicated
+- headings are included with the section they introduce rather than emitted on their own
+- use one object per category unless a larger category must be split at a natural boundary
 """
 
 chunking_user_prompt: str = """
