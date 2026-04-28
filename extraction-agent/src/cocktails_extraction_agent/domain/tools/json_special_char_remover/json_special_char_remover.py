@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 
 from langchain.tools import tool
@@ -21,7 +22,7 @@ async def remove_special_json_characters(text: str) -> str | None:
     try:
         _logger.info("[Tool] special json character removal process called.")
 
-        result = text.replace('"', "").replace("'", "").replace("\\", "")
+        result = json.dumps(text)[1:-1]
         await asyncio.sleep(0)  # Yield control to the event loop
         return result
 
