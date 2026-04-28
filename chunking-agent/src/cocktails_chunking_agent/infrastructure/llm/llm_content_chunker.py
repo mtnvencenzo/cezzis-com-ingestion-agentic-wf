@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import time
 from typing import Any, List, cast
 
@@ -27,7 +28,6 @@ ALLOWED_CHUNK_CATEGORIES = {
     "flavor_profile",
     "ingredients",
     "directions",
-    "glassware",
     "occasions",
     "variations",
     "other",
@@ -222,20 +222,27 @@ class LLMContentChunker:
             raise ValueError(f"Chunking output contained non-string content fields: {content_type_errors}")
 
         reconstructed_text = "".join(reconstructed_parts)
-        if reconstructed_text != extraction_text:
-            mismatch_index = self._first_mismatch_index(extraction_text, reconstructed_text)
+        normalized_expected_text = self._normalize_text_for_validation(extraction_text)
+        normalized_reconstructed_text = self._normalize_text_for_validation(reconstructed_text)
+
+        if normalized_reconstructed_text != normalized_expected_text:
+            mismatch_index = self._first_mismatch_index(normalized_expected_text, normalized_reconstructed_text)
             self._logger.warning(
                 "Chunking output content did not reconstruct the original source text.",
                 extra={
                     "cocktail_id": cocktail_id,
                     "mismatch_index": mismatch_index,
-                    "expected_length": len(extraction_text),
-                    "actual_length": len(reconstructed_text),
+                    "expected_length": len(normalized_expected_text),
+                    "actual_length": len(normalized_reconstructed_text),
                 },
             )
             raise ValueError(
                 "Chunking output content did not exactly match the original source text in order and completeness"
             )
+
+    def _normalize_text_for_validation(self, text: str) -> str:
+        normalized_line_endings = text.replace("\r\n", "\n").replace("\r", "\n")
+        return re.sub(r"[ \t]*\n+[ \t]*", " ", normalized_line_endings)
 
     def _first_mismatch_index(self, expected_text: str, actual_text: str) -> int:
         for index, (expected_char, actual_char) in enumerate(zip(expected_text, actual_text)):

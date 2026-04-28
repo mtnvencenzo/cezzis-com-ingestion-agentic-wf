@@ -12,3 +12,5 @@ class TestChunkingPrompts:
         assert "Prefer this category over historical_and_geographical when named references are central" in (
             chunking_sys_prompt
         )
+        assert "- glassware" not in chunking_sys_prompt
+        assert "serving-vessel instructions" in chunking_sys_prompt

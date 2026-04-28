@@ -18,6 +18,19 @@ class TestLLMContentChunker:
             cocktail_id="test-cocktail",
         )
 
+    def test_validate_chunk_output_accepts_newline_only_differences(self, mocker) -> None:
+        chunker = LLMContentChunker.__new__(LLMContentChunker)
+        chunker._logger = mocker.Mock()
+
+        chunker._validate_chunk_output(
+            [
+                {"category": "ingredients", "content": "Ingredients 2 oz gin"},
+                {"category": "directions", "content": "Directions Shake with ice."},
+            ],
+            extraction_text="Ingredients\n\n2 oz ginDirections\nShake with ice.",
+            cocktail_id="test-cocktail",
+        )
+
     def test_validate_chunk_output_rejects_invalid_categories(self, mocker) -> None:
         chunker = LLMContentChunker.__new__(LLMContentChunker)
         chunker._logger = mocker.Mock()
@@ -26,9 +39,9 @@ class TestLLMContentChunker:
             chunker._validate_chunk_output(
                 [
                     {"category": "ingredients_part1", "content": "2 oz gin"},
-                    {"category": "glassware", "content": "Coupe glass."},
+                    {"category": "directions", "content": "Serve in a coupe glass."},
                 ],
-                extraction_text="2 oz ginCoupe glass.",
+                extraction_text="2 oz ginServe in a coupe glass.",
                 cocktail_id="test-cocktail",
             )
 

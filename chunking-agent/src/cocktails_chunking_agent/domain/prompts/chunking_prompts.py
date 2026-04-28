@@ -13,7 +13,6 @@ Allowed categories:
 - flavor_profile
 - ingredients
 - directions
-- glassware
 - occasions
 - variations
 - other
@@ -32,8 +31,7 @@ Rules:
 
 Tie-break rules:
 - ingredients: ingredient names, amounts, ratios, garnish ingredients, and recipe components
-- directions: preparation or mixing actions such as shake, stir, strain, garnish, chill, muddle, or rim
-- glassware: serving vessel or glass type
+- directions: preparation or mixing actions such as shake, stir, strain, garnish, chill, muddle, rim, or serving-vessel instructions such as coupe glass, rocks glass, or cocktail glass
 - flavor_profile: taste, aroma, texture, balance, or finish
 - occasions: season, holiday, event, celebration, time, or setting for drinking
 - suggestions: serving advice, pairings, recommendations, or bartender tips
