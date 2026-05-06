@@ -1,4 +1,6 @@
 import logging
+from datetime import datetime, timezone
+from typing import Dict
 
 from cezzis_kafka import KafkaProducer
 from cezzis_otel import get_propagation_headers
@@ -45,6 +47,7 @@ class ProcessExtractionEventCommandHandler:
         self.llm_content_cleaner = llm_content_cleaner
         self.logger = logging.getLogger("process_extraction_event_command_handler")
         self.tracer = trace.get_tracer("extraction_agent")
+        self.cocktail_process_log: Dict[str, datetime] = {}
 
     async def handle(self, command: ProcessExtractionEventCommand) -> bool:
         self.logger.info("Processing extraction event")
@@ -55,6 +58,22 @@ class ProcessExtractionEventCommandHandler:
                 "cocktail_id": command.model.id,
             },
         )
+
+        last_processed_time = self.cocktail_process_log.get(command.model.id)
+        utc_now = datetime.now(timezone.utc)
+
+        if (
+            last_processed_time
+            and (utc_now - last_processed_time).total_seconds() < self.app_options.cocktail_reprocess_cooldown_seconds
+        ):
+            self.logger.info(
+                msg="Skipping cocktail extraction processing due to recent processing",
+                extra={
+                    "cocktail_id": command.model.id,
+                    "last_processed_time": last_processed_time.isoformat(),
+                },
+            )
+            return True
 
         result_content = ""
 
@@ -100,6 +119,10 @@ class ProcessExtractionEventCommandHandler:
             headers=get_propagation_headers(),
             timeout=30.0,
         )
+
+        # record the processing time for this cocktail to prevent immediate reprocessing
+        # if multiple extraction events for the same cocktail are received in a short time frame
+        self.cocktail_process_log[command.model.id] = utc_now
 
         self.logger.info(
             msg="Cocktail extraction succeeded",
