@@ -3,8 +3,10 @@ from injector import Binder, Injector, Module, noscope, singleton
 from mediatr import Mediator
 
 from cocktails_extraction_agent.application.concerns import RunExtractionAgentCommandHandler
+from cocktails_extraction_agent.application.services.cocktails_api_service import CocktailsApiService
 from cocktails_extraction_agent.domain.config import (
     AppOptions,
+    CocktailsApiOptions,
     KafkaOptions,
     get_app_options,
     get_kafka_options,
@@ -47,7 +49,9 @@ class AppModule(Module):
         binder.bind(LLMOptions, get_llm_options(), scope=singleton)
         binder.bind(LLMModelOptions, llm_model_options, scope=singleton)
         binder.bind(AppOptions, app_options, scope=singleton)
+        binder.bind(CocktailsApiOptions, CocktailsApiOptions(), scope=singleton)
         binder.bind(RunExtractionAgentCommandHandler, RunExtractionAgentCommandHandler, scope=singleton)
+        binder.bind(CocktailsApiService, CocktailsApiService, scope=singleton)
         binder.bind(ExtractionEventReceiver, ExtractionEventReceiver, scope=noscope)
         binder.bind(KafkaProducer, KafkaProducer(get_kafka_producer_settings()), scope=singleton)
         binder.bind(OllamaLLMFactory, OllamaLLMFactory, scope=singleton)

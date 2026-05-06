@@ -17,6 +17,8 @@ data:
   OTEL_ENABLE_CONSOLE_LOGGING: "true"
   OTEL_ENABLE_TRACING: "true"
   OTEL_ENABLE_LOGGING: "true"
+  # cocktails api settings
+  COCKTAILS_API_BASE_URL: "https://www.cezzis.com/prd/cocktails"
   # kafka settings
   KAFKA_BOOTSTRAP_SERVERS: "kafka-broker-1.kafka-platform.svc.cluster.local:19092,kafka-broker-2.kafka-platform.svc.cluster.local:19093,kafka-broker-3.kafka-platform.svc.cluster.local:19095"
   KAFKA_CONSUMER_GROUP: "cocktails-ingestion-extraction-agent-cloudsync"
