@@ -62,6 +62,22 @@ class ProcessExtractionEventCommandHandler:
             },
         )
 
+        last_processed_time = self.cocktail_process_log.get(command.model.id)
+        utc_now = datetime.now(timezone.utc)
+
+        if (
+            last_processed_time
+            and (utc_now - last_processed_time).total_seconds() < self.app_options.cocktail_reprocess_cooldown_seconds
+        ):
+            self.logger.info(
+                msg="Skipping cocktail extraction processing due to recent processing",
+                extra={
+                    "cocktail_id": command.model.id,
+                    "last_processed_time": last_processed_time.isoformat(),
+                },
+            )
+            return True
+
         latest_cocktail_data = await self.cocktails_api_service.get_cocktail(
             id=command.model.id,
             resolve_ingredients=True,
@@ -73,22 +89,6 @@ class ProcessExtractionEventCommandHandler:
                 msg="Cocktail data not found from cocktails API, skipping extraction processing",
                 extra={
                     "cocktail_id": command.model.id,
-                },
-            )
-            return True
-
-        last_processed_time = self.cocktail_process_log.get(latest_cocktail_data.id)
-        utc_now = datetime.now(timezone.utc)
-
-        if (
-            last_processed_time
-            and (utc_now - last_processed_time).total_seconds() < self.app_options.cocktail_reprocess_cooldown_seconds
-        ):
-            self.logger.info(
-                msg="Skipping cocktail extraction processing due to recent processing",
-                extra={
-                    "cocktail_id": latest_cocktail_data.id,
-                    "last_processed_time": last_processed_time.isoformat(),
                 },
             )
             return True
