@@ -5,7 +5,7 @@ description = "The cezzis.com extraction agent reads from a stream of cocktail u
 authors = [
     {name = "mtnvencenzo",email = "rvecchi@gmail.com"}
 ]
-license = {text = "MIT"}
+license = {text = "Proprietary"}
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
 dependencies = [
