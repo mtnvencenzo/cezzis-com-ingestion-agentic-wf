@@ -33,4 +33,6 @@ spec:
             - configMapRef:
                 name: cezzis-cocktails-extraction-agent-cloudsync-config
             - secretRef:
+                name: cezzis-cocktails-extraction-agent-cloudsync-secrets
+            - secretRef:
                 name: cezzis-cocktails-extraction-agent-cloudsync-shared-secrets
