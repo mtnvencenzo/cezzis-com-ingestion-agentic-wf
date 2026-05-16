@@ -80,6 +80,19 @@ jobs:
       acr_registry_login_username: ${{ secrets.ACR_REGISTRY_USERNAME }}
       acr_registry_login_password: ${{ secrets.ACR_REGISTRY_PASSWORD }}
 
+  docker_purge:
+    name: Purge ACR images
+    needs: [docker, gitVersion]
+    uses: mtnvencenzo/workflows/.github/workflows/docker-purge.yaml@main
+    with:
+      enable_purge: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_name == 'main' }}
+      acr_registry_login_server: 'acrveceusgloshared001.azurecr.io'
+      acr_image_repository: 'cocktailsingestionextractionagent'
+
+    secrets:
+      acr_registry_login_username: ${{ secrets.ACR_REGISTRY_USERNAME }}
+      acr_registry_login_password: ${{ secrets.ACR_REGISTRY_PASSWORD }}
+
   create_release_prd:
     name: Create release
     if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_name == 'main' }}
