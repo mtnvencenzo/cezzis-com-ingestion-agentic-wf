@@ -23,7 +23,7 @@ coverage:
 
 gen-cocktails-api:
 	poetry run datamodel-codegen \
-		--url "http://cezzis-cocktailsapi.127.0.0.1.sslip.io/scalar/v1/openapi.json" \
+		--url "http://localhost:7179/scalar/v1/openapi.json" \
 		--input-file-type openapi --output src/cocktails_chunking_agent/infrastructure/clients/cocktails_api/cocktail_api.py \
 		--output-model-type pydantic_v2.BaseModel \
 		--field-constraints --use-default \
