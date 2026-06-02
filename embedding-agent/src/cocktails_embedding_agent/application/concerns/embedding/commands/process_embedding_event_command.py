@@ -101,10 +101,7 @@ class ProcessEmbeddingEventCommandHandler:
                                 ingredient.preparation.value
                             ],
                             uoM=aisearch_models.CocktailSearchUofMTypeModel[ingredient.uoM.value],
-                            types=[
-                                aisearch_models.CocktailSearchIngredientTypeModel[type_.value]
-                                for type_ in ingredient.types
-                            ],
+                            types=ingredient.types,
                             applications=[
                                 aisearch_models.CocktailSearchIngredientApplicationTypeModel[application.value]
                                 for application in ingredient.applications
