@@ -93,6 +93,7 @@ class ProcessEmbeddingEventCommandHandler:
                     isIba=command.model.cocktail_model.isIba,
                     ingredients=[
                         CocktailSearchIngredientModel(
+                            id=ingredient.id,
                             name=ingredient.name,
                             units=ingredient.units,
                             display=ingredient.display,
