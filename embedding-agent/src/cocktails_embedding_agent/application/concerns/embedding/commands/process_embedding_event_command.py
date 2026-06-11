@@ -12,6 +12,7 @@ from cocktails_embedding_agent.infrastructure.clients.aisearch_api.aisearch_mode
     CocktailDescriptionChunk,
     CocktailEmbeddingModel,
     CocktailEmbeddingRq,
+    CocktailSearchImageModel,
     CocktailSearchIngredientModel,
     CocktailSearchKeywords,
 )
@@ -118,7 +119,15 @@ class ProcessEmbeddingEventCommandHandler:
                         for glass in command.model.cocktail_model.glassware
                     ],
                     rating=command.model.cocktail_model.rating.rating,
-                    searchTiles=[s.uri for s in command.model.cocktail_model.searchTiles],
+                    images=[
+                        CocktailSearchImageModel(
+                            type=image.type,
+                            uri=image.uri,
+                            width=image.width,
+                            height=image.height,
+                        )
+                        for image in command.model.cocktail_model.images
+                    ],
                 ),
                 cocktailKeywords=CocktailSearchKeywords(
                     keywordsBaseSpirit=[kw for kw in (command.model.cocktail_model.keywords.keywordsBaseSpirit or [])]
