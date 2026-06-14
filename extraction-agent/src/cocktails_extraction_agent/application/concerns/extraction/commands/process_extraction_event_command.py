@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Dict
 
 from cezzis_kafka import KafkaProducer
@@ -50,6 +50,9 @@ class ProcessExtractionEventCommandHandler:
         self.cocktails_api_service = cocktails_api_service
         self.logger = logging.getLogger("process_extraction_event_command_handler")
         self.tracer = trace.get_tracer("extraction_agent")
+        # In-memory record of the most recent cocktail `modifiedOn` date that was
+        # successfully processed and sent to the results topic, keyed by cocktail id.
+        # This is intentionally non-persistent and only lives for the duration of the process.
         self.cocktail_process_log: Dict[str, datetime] = {}
 
     async def handle(self, command: ProcessExtractionEventCommand) -> bool:
@@ -62,22 +65,6 @@ class ProcessExtractionEventCommandHandler:
             },
         )
 
-        last_processed_time = self.cocktail_process_log.get(command.model.id)
-        utc_now = datetime.now(timezone.utc)
-
-        if (
-            last_processed_time
-            and (utc_now - last_processed_time).total_seconds() < self.app_options.cocktail_reprocess_cooldown_seconds
-        ):
-            self.logger.info(
-                msg="Skipping cocktail extraction processing due to recent processing",
-                extra={
-                    "cocktail_id": command.model.id,
-                    "last_processed_time": last_processed_time.isoformat(),
-                },
-            )
-            return True
-
         latest_cocktail_data = await self.cocktails_api_service.get_cocktail(
             id=command.model.id,
             resolve_ingredients=True,
@@ -89,6 +76,23 @@ class ProcessExtractionEventCommandHandler:
                 msg="Cocktail data not found from cocktails API, skipping extraction processing",
                 extra={
                     "cocktail_id": command.model.id,
+                },
+            )
+            return True
+
+        # Skip processing when we've already sent this (or a newer) version of the cocktail
+        # to the results topic. Because every message fetches the latest data from the API,
+        # processing any single queued message for a cocktail effectively processes the most
+        # recent version, allowing all other queued duplicates to be safely skipped.
+        last_processed_modified_on = self.cocktail_process_log.get(latest_cocktail_data.id)
+
+        if last_processed_modified_on is not None and latest_cocktail_data.modifiedOn <= last_processed_modified_on:
+            self.logger.info(
+                msg="Skipping cocktail extraction processing; latest version already processed",
+                extra={
+                    "cocktail_id": latest_cocktail_data.id,
+                    "cocktail_modified_on": latest_cocktail_data.modifiedOn.isoformat(),
+                    "last_processed_modified_on": last_processed_modified_on.isoformat(),
                 },
             )
             return True
@@ -138,9 +142,10 @@ class ProcessExtractionEventCommandHandler:
             timeout=30.0,
         )
 
-        # record the processing time for this cocktail to prevent immediate reprocessing
-        # if multiple extraction events for the same cocktail are received in a short time frame
-        self.cocktail_process_log[latest_cocktail_data.id] = utc_now
+        # record the modifiedOn date of the version we just processed so that any other
+        # queued extraction events for the same cocktail (which will fetch this same latest
+        # data from the API) are recognized as already processed and skipped.
+        self.cocktail_process_log[latest_cocktail_data.id] = latest_cocktail_data.modifiedOn
 
         self.logger.info(
             msg="Cocktail extraction succeeded",

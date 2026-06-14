@@ -16,7 +16,6 @@ class AppOptions(BaseSettings):
         num_consumers (int): Number of Kafka consumer processes to start.
         max_poll_interval_ms (int): Maximum poll interval in milliseconds for Kafka consumers.
         auto_offset_reset (str): Auto offset reset policy for Kafka consumers.
-        cocktail_reprocess_cooldown_seconds (int): Cooldown period in seconds to prevent reprocessing the same cocktail too frequently.
         llm_model (str): LLM model to use for extraction.
         llm_model_temperature (float): Temperature setting for the LLM model.
         llm_model_num_ctx (int): Number of context tokens for the LLM model.
@@ -40,9 +39,6 @@ class AppOptions(BaseSettings):
     results_topic_name: str = Field(default="", validation_alias="EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME")
     max_poll_interval_ms: int = Field(default=300000, validation_alias="EXTRACTION_AGENT_KAFKA_MAX_POLL_INTERVAL_MS")
     auto_offset_reset: str = Field(default="earliest", validation_alias="EXTRACTION_AGENT_KAFKA_AUTO_OFFSET_RESET")
-    cocktail_reprocess_cooldown_seconds: int = Field(
-        default=180, validation_alias="EXTRACTION_AGENT_COCKTAIL_REPROCESS_COOLDOWN_SECONDS"
-    )
     llm_model: str = Field(default="", validation_alias="EXTRACTION_AGENT_LLM_MODEL")
     llm_model_temperature: float = Field(default=0.3, validation_alias="EXTRACTION_AGENT_LLM_MODEL_TEMPERATURE")
     llm_model_num_ctx: int | None = Field(default=None, validation_alias="EXTRACTION_AGENT_LLM_MODEL_NUM_CTX")
@@ -85,8 +81,6 @@ def get_app_options() -> AppOptions:
             raise ValueError("EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME environment variable is required")
         if not _app_options.num_consumers or _app_options.num_consumers < 1:
             raise ValueError("EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS environment variable must be a positive integer")
-        if _app_options.cocktail_reprocess_cooldown_seconds < 0:
-            raise ValueError("EXTRACTION_AGENT_COCKTAIL_REPROCESS_COOLDOWN_SECONDS must be a non-negative integer")
         if not _app_options.llm_model:
             raise ValueError("EXTRACTION_AGENT_LLM_MODEL environment variable is required")
         if _app_options.llm_model_temperature < 0.0 or _app_options.llm_model_temperature > 1.0:

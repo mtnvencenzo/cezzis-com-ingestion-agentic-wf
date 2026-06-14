@@ -3,6 +3,9 @@ from injector import Binder, Injector, Module, noscope, singleton
 from mediatr import Mediator
 
 from cocktails_extraction_agent.application.concerns import RunExtractionAgentCommandHandler
+from cocktails_extraction_agent.application.concerns.extraction.commands.process_extraction_event_command import (
+    ProcessExtractionEventCommandHandler,
+)
 from cocktails_extraction_agent.application.services.cocktails_api_service import CocktailsApiService
 from cocktails_extraction_agent.domain.config import (
     AppOptions,
@@ -51,6 +54,11 @@ class AppModule(Module):
         binder.bind(AppOptions, app_options, scope=singleton)
         binder.bind(CocktailsApiOptions, CocktailsApiOptions(), scope=singleton)
         binder.bind(RunExtractionAgentCommandHandler, RunExtractionAgentCommandHandler, scope=singleton)
+        # Bound as a singleton so its in-memory `cocktail_process_log` (modifiedOn dedup
+        # state) persists across messages for the life of the process. mediatr resolves a
+        # fresh handler per dispatch via injector.get(), so without this the dedup state
+        # would reset on every message.
+        binder.bind(ProcessExtractionEventCommandHandler, ProcessExtractionEventCommandHandler, scope=singleton)
         binder.bind(CocktailsApiService, CocktailsApiService, scope=singleton)
         binder.bind(ExtractionEventReceiver, ExtractionEventReceiver, scope=noscope)
         binder.bind(KafkaProducer, KafkaProducer(get_kafka_producer_settings()), scope=singleton)
