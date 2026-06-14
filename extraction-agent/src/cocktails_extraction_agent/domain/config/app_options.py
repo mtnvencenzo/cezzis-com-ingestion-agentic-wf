@@ -27,7 +27,6 @@ class AppOptions(BaseSettings):
         llm_model_reasoning (bool): Whether to enable reasoning mode for the LLM model.
         llm_mcp_url (str): URL for the LLM MCP server.
         llm_mcp_transport (Literal): Transport method for communicating with the LLM MCP server.
-        llm_mcp_xkey (str): X-Key for authenticating with the LLM MCP server.
         use_llm (bool): Flag to indicate whether to use the LLM for extraction or not.
     """
 
@@ -61,7 +60,6 @@ class AppOptions(BaseSettings):
     llm_mcp_transport: Literal["stdio", "sse", "streamable_http", "websocket"] = Field(
         default="streamable_http", validation_alias="EXTRACTION_AGENT_LLM_MCP_TRANSPORT"
     )
-    llm_mcp_xkey: str = Field(default="", validation_alias="EXTRACTION_AGENT_LLM_MCP_XKEY")
     use_llm: bool = Field(default=False, validation_alias="EXTRACTION_AGENT_USE_LLM")
 
 
