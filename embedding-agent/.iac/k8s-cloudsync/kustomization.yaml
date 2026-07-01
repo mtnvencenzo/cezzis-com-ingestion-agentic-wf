@@ -6,5 +6,5 @@ resources:
   - deployment.yml
 images:
   - name: acrveceusgloshared001.azurecr.io/cocktailsingestionembeddingagent
-    newTag: 0.0.107
+    newTag: 0.0.110
     newName: acrveceusgloshared001.azurecr.io/cocktailsingestionembeddingagent
