@@ -79,130 +79,126 @@ class ProcessEmbeddingEventCommandHandler:
             },
         )
 
-        await self.aisearch_client.create_embeddings(
-            embedding_rq=CocktailEmbeddingRq(
-                contentChunks=[
-                    CocktailDescriptionChunk(content=chunk.content, category=chunk.category)
-                    for chunk in chunks_to_embed
+        embedding_rq = CocktailEmbeddingRq(
+            contentChunks=[
+                CocktailDescriptionChunk(content=chunk.content, category=chunk.category) for chunk in chunks_to_embed
+            ],
+            cocktailEmbeddingModel=CocktailEmbeddingModel(
+                id=command.model.cocktail_model.id,
+                title=command.model.cocktail_model.title,
+                descriptiveTitle=command.model.cocktail_model.descriptiveTitle,
+                serves=command.model.cocktail_model.serves,
+                prepTimeMinutes=command.model.cocktail_model.prepTimeMinutes,
+                isIba=command.model.cocktail_model.isIba,
+                ingredients=[
+                    CocktailSearchIngredientModel(
+                        id=ingredient.id,
+                        name=ingredient.name,
+                        units=ingredient.units,
+                        display=ingredient.display,
+                        suggestions=ingredient.suggestions,
+                        preparation=aisearch_models.CocktailSearchPreparationTypeModel[ingredient.preparation.value],
+                        uoM=aisearch_models.CocktailSearchUofMTypeModel[ingredient.uoM.value],
+                        types=ingredient.types,
+                        applications=[
+                            aisearch_models.CocktailSearchIngredientApplicationTypeModel[application.value]
+                            for application in ingredient.applications
+                        ],
+                        requirement=aisearch_models.CocktailSearchIngredientRequirementTypeModel[
+                            ingredient.requirement.value
+                        ],
+                    )
+                    for ingredient in command.model.cocktail_model.ingredients
                 ],
-                cocktailEmbeddingModel=CocktailEmbeddingModel(
-                    id=command.model.cocktail_model.id,
-                    title=command.model.cocktail_model.title,
-                    descriptiveTitle=command.model.cocktail_model.descriptiveTitle,
-                    serves=command.model.cocktail_model.serves,
-                    prepTimeMinutes=command.model.cocktail_model.prepTimeMinutes,
-                    isIba=command.model.cocktail_model.isIba,
-                    ingredients=[
-                        CocktailSearchIngredientModel(
-                            id=ingredient.id,
-                            name=ingredient.name,
-                            units=ingredient.units,
-                            display=ingredient.display,
-                            suggestions=ingredient.suggestions,
-                            preparation=aisearch_models.CocktailSearchPreparationTypeModel[
-                                ingredient.preparation.value
-                            ],
-                            uoM=aisearch_models.CocktailSearchUofMTypeModel[ingredient.uoM.value],
-                            types=ingredient.types,
-                            applications=[
-                                aisearch_models.CocktailSearchIngredientApplicationTypeModel[application.value]
-                                for application in ingredient.applications
-                            ],
-                            requirement=aisearch_models.CocktailSearchIngredientRequirementTypeModel[
-                                ingredient.requirement.value
-                            ],
-                        )
-                        for ingredient in command.model.cocktail_model.ingredients
-                    ],
-                    glassware=[
-                        aisearch_models.CocktailSearchGlasswareTypeModel[glass.value]
-                        for glass in command.model.cocktail_model.glassware
-                    ],
-                    rating=command.model.cocktail_model.rating.rating,
-                    images=[
-                        CocktailSearchImageModel(
-                            type=image.type,
-                            uri=image.uri,
-                            width=image.width,
-                            height=image.height,
-                        )
-                        for image in command.model.cocktail_model.images
-                    ],
-                ),
-                cocktailKeywords=CocktailSearchKeywords(
-                    keywordsBaseSpirit=[kw for kw in (command.model.cocktail_model.keywords.keywordsBaseSpirit or [])]
-                    if command.model.cocktail_model
-                    and command.model.cocktail_model.keywords
-                    and command.model.cocktail_model.keywords.keywordsBaseSpirit
-                    else [],
-                    keywordsFlavorProfile=[
-                        kw for kw in (command.model.cocktail_model.keywords.keywordsFlavorProfile or [])
-                    ]
-                    if command.model.cocktail_model
-                    and command.model.cocktail_model.keywords
-                    and command.model.cocktail_model.keywords.keywordsFlavorProfile
-                    else [],
-                    keywordsTechnique=[kw for kw in (command.model.cocktail_model.keywords.keywordsTechnique or [])]
-                    if command.model.cocktail_model
-                    and command.model.cocktail_model.keywords
-                    and command.model.cocktail_model.keywords.keywordsTechnique
-                    else [],
-                    keywordsOccasion=[kw for kw in (command.model.cocktail_model.keywords.keywordsOccasion or [])]
-                    if command.model.cocktail_model
-                    and command.model.cocktail_model.keywords
-                    and command.model.cocktail_model.keywords.keywordsOccasion
-                    else [],
-                    keywordsCocktailFamily=[
-                        kw for kw in (command.model.cocktail_model.keywords.keywordsCocktailFamily or [])
-                    ]
-                    if command.model.cocktail_model
-                    and command.model.cocktail_model.keywords
-                    and command.model.cocktail_model.keywords.keywordsCocktailFamily
-                    else [],
-                    keywordsMood=[kw for kw in (command.model.cocktail_model.keywords.keywordsMood or [])]
-                    if command.model.cocktail_model
-                    and command.model.cocktail_model.keywords
-                    and command.model.cocktail_model.keywords.keywordsMood
-                    else [],
-                    keywordsSearchTerms=[kw for kw in (command.model.cocktail_model.keywords.keywordsSearchTerms or [])]
-                    if command.model.cocktail_model
-                    and command.model.cocktail_model.keywords
-                    and command.model.cocktail_model.keywords.keywordsSearchTerms
-                    else [],
-                    keywordsSpiritSubtype=[
-                        kw for kw in (command.model.cocktail_model.keywords.keywordsSpiritSubtype or [])
-                    ]
-                    if command.model.cocktail_model
-                    and command.model.cocktail_model.keywords
-                    and command.model.cocktail_model.keywords.keywordsSpiritSubtype
-                    else [],
-                    keywordsSeason=[kw for kw in (command.model.cocktail_model.keywords.keywordsSeason or [])]
-                    if command.model.cocktail_model
-                    and command.model.cocktail_model.keywords
-                    and command.model.cocktail_model.keywords.keywordsSeason
-                    else [],
-                    keywordsStrength=command.model.cocktail_model.keywords.keywordsStrength
-                    if command.model.cocktail_model
-                    and command.model.cocktail_model.keywords
-                    and command.model.cocktail_model.keywords.keywordsStrength
-                    else None,
-                    keywordsTemperature=command.model.cocktail_model.keywords.keywordsTemperature
-                    if command.model.cocktail_model
-                    and command.model.cocktail_model.keywords
-                    and command.model.cocktail_model.keywords.keywordsTemperature
-                    else None,
-                ),
-            )
+                glassware=[
+                    aisearch_models.CocktailSearchGlasswareTypeModel[glass.value]
+                    for glass in command.model.cocktail_model.glassware
+                ],
+                rating=command.model.cocktail_model.rating.rating,
+                images=[
+                    CocktailSearchImageModel(
+                        type=image.type,
+                        uri=image.uri,
+                        width=image.width,
+                        height=image.height,
+                    )
+                    for image in command.model.cocktail_model.images
+                ],
+            ),
+            cocktailKeywords=CocktailSearchKeywords(
+                keywordsBaseSpirit=[kw for kw in (command.model.cocktail_model.keywords.keywordsBaseSpirit or [])]
+                if command.model.cocktail_model
+                and command.model.cocktail_model.keywords
+                and command.model.cocktail_model.keywords.keywordsBaseSpirit
+                else [],
+                keywordsFlavorProfile=[kw for kw in (command.model.cocktail_model.keywords.keywordsFlavorProfile or [])]
+                if command.model.cocktail_model
+                and command.model.cocktail_model.keywords
+                and command.model.cocktail_model.keywords.keywordsFlavorProfile
+                else [],
+                keywordsTechnique=[kw for kw in (command.model.cocktail_model.keywords.keywordsTechnique or [])]
+                if command.model.cocktail_model
+                and command.model.cocktail_model.keywords
+                and command.model.cocktail_model.keywords.keywordsTechnique
+                else [],
+                keywordsOccasion=[kw for kw in (command.model.cocktail_model.keywords.keywordsOccasion or [])]
+                if command.model.cocktail_model
+                and command.model.cocktail_model.keywords
+                and command.model.cocktail_model.keywords.keywordsOccasion
+                else [],
+                keywordsCocktailFamily=[
+                    kw for kw in (command.model.cocktail_model.keywords.keywordsCocktailFamily or [])
+                ]
+                if command.model.cocktail_model
+                and command.model.cocktail_model.keywords
+                and command.model.cocktail_model.keywords.keywordsCocktailFamily
+                else [],
+                keywordsMood=[kw for kw in (command.model.cocktail_model.keywords.keywordsMood or [])]
+                if command.model.cocktail_model
+                and command.model.cocktail_model.keywords
+                and command.model.cocktail_model.keywords.keywordsMood
+                else [],
+                keywordsSearchTerms=[kw for kw in (command.model.cocktail_model.keywords.keywordsSearchTerms or [])]
+                if command.model.cocktail_model
+                and command.model.cocktail_model.keywords
+                and command.model.cocktail_model.keywords.keywordsSearchTerms
+                else [],
+                keywordsSpiritSubtype=[kw for kw in (command.model.cocktail_model.keywords.keywordsSpiritSubtype or [])]
+                if command.model.cocktail_model
+                and command.model.cocktail_model.keywords
+                and command.model.cocktail_model.keywords.keywordsSpiritSubtype
+                else [],
+                keywordsSeason=[kw for kw in (command.model.cocktail_model.keywords.keywordsSeason or [])]
+                if command.model.cocktail_model
+                and command.model.cocktail_model.keywords
+                and command.model.cocktail_model.keywords.keywordsSeason
+                else [],
+                keywordsStrength=command.model.cocktail_model.keywords.keywordsStrength
+                if command.model.cocktail_model
+                and command.model.cocktail_model.keywords
+                and command.model.cocktail_model.keywords.keywordsStrength
+                else None,
+                keywordsTemperature=command.model.cocktail_model.keywords.keywordsTemperature
+                if command.model.cocktail_model
+                and command.model.cocktail_model.keywords
+                and command.model.cocktail_model.keywords.keywordsTemperature
+                else None,
+            ),
         )
 
-        self.logger.info(
-            msg="Cocktail embedding succeeded",
-            extra={
-                "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
-                "messaging.kafka.topic_name": self.app_options.consumer_topic_name,
-                "cocktail_id": command.model.cocktail_model.id,
-                "cocktail_ingestion_state": "embedding-succeeded",
-            },
-        )
+        if not embedding_rq:
+            return False
+
+        # await self.aisearch_client.create_embeddings(embedding_rq)
+
+        # self.logger.info(
+        #     msg="Cocktail embedding succeeded",
+        #     extra={
+        #         "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
+        #         "messaging.kafka.topic_name": self.app_options.consumer_topic_name,
+        #         "cocktail_id": command.model.cocktail_model.id,
+        #         "cocktail_ingestion_state": "embedding-succeeded",
+        #     },
+        # )
 
         return True
