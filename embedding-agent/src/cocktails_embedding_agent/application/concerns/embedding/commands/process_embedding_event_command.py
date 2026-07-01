@@ -189,16 +189,16 @@ class ProcessEmbeddingEventCommandHandler:
         if not embedding_rq:
             return False
 
-        # await self.aisearch_client.create_embeddings(embedding_rq)
+        await self.aisearch_client.create_embeddings(embedding_rq)
 
-        # self.logger.info(
-        #     msg="Cocktail embedding succeeded",
-        #     extra={
-        #         "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
-        #         "messaging.kafka.topic_name": self.app_options.consumer_topic_name,
-        #         "cocktail_id": command.model.cocktail_model.id,
-        #         "cocktail_ingestion_state": "embedding-succeeded",
-        #     },
-        # )
+        self.logger.info(
+            msg="Cocktail embedding succeeded",
+            extra={
+                "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
+                "messaging.kafka.topic_name": self.app_options.consumer_topic_name,
+                "cocktail_id": command.model.cocktail_model.id,
+                "cocktail_ingestion_state": "embedding-succeeded",
+            },
+        )
 
         return True
