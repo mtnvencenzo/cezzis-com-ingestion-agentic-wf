@@ -88,6 +88,7 @@ jobs:
       enable_purge: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_name == 'main' }}
       acr_registry_login_server: 'acrveceusgloshared001.azurecr.io'
       acr_image_repository: 'cocktailsingestionextractionagent'
+      retain_count: 2
 
     secrets:
       acr_registry_login_username: ${{ secrets.ACR_REGISTRY_USERNAME }}
