@@ -86,39 +86,49 @@ Core settings:
 - `LANGFUSE_PUBLIC_KEY`
 - `LANGFUSE_SECRET_KEY`
 
-## Local Development
+## Getting Started
+
+### Prerequisites
+- Python 3.12 through 3.14
+- Poetry for dependency management
+- Access to the local Kubernetes and Dapr development environment when using the recommended debug workflow
+
+### Install Poetry
+
+Install Poetry once for your Ubuntu user. You can run these commands from any directory:
 
 ```bash
-cd extraction-agent
-poetry install --with dev
-poetry run pytest -v test/
-poetry run cocktails-extraction-agent
+sudo apt update
+sudo apt install -y pipx
+pipx ensurepath
 ```
 
-Useful commands:
+Open a new terminal, then install Poetry and verify it:
+
+```bash
+pipx install poetry
+poetry --version
+```
+
+`pipx` keeps Poetry and its own dependencies separate from the system Python and from project dependencies.
+
+### Installation
+
+Run the following commands from this repository's root directory, where `pyproject.toml` is located:
+
+```bash
+cd ~/Github/cezzis-com-accounts-api
+poetry config virtualenvs.in-project true
+poetry env use python3
+```
+
+This creates a separate `.venv` directory in the repository. Repeat these project setup commands for each Poetry repository; do not repeat the Poetry installation.
+
+Install dependencies using the standard repository workflow:
 
 ```bash
 make install
-make lint
-make format
-make test
-make coverage
-make build
 ```
-
-The package exposes the console script:
-
-```bash
-cocktails-extraction-agent
-```
-
-## Docker
-
-The Docker image is built from a multi-stage Dockerfile.
-
-- Builder image: `python:3.12-bullseye`
-- Runtime image: `python:3.12-slim`
-- Container entrypoint: `cocktails-extraction-agent`
 
 ## CI/CD
 
