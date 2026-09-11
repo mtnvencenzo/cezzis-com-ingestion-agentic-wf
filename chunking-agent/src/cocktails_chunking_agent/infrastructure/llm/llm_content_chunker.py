@@ -88,11 +88,14 @@ class LLMContentChunker:
 
         try:
             array_result = json.loads(result_content)
-            return [CocktailDescriptionChunk(**item) for item in array_result]
-        except json.JSONDecodeError as e:
+            return self._build_chunks(array_result)
+        except (json.JSONDecodeError, TypeError, ValueError) as e:
             self._logger.warning(
-                "Initial chunking output validation failed, attempting to fix the output.",
-                extra={"error": str(e), "cocktail_id": cocktail_id},
+                "Initial chunking output validation failed, attempting to fix the output. "
+                "cocktail_id=%s error=%s raw_response=%s",
+                cocktail_id,
+                e,
+                self._truncate(result_content),
             )
             fix_prompt = build_fix_prompt(str(e), result_content)
             agent_messages.append(AIMessage(content=result_content))
@@ -115,13 +118,49 @@ class LLMContentChunker:
 
             try:
                 array_result = json.loads(result_content_retry)
-                return [CocktailDescriptionChunk(**item) for item in array_result]
-            except json.JSONDecodeError as e:
+                return self._build_chunks(array_result)
+            except (json.JSONDecodeError, TypeError, ValueError) as retry_e:
+                self._logger.error(
+                    "Repair attempt chunking output validation failed. cocktail_id=%s error=%s raw_response=%s",
+                    cocktail_id,
+                    retry_e,
+                    self._truncate(result_content_retry),
+                )
                 self._log_content_json(cocktail_id, result_content_retry)
                 raise
-        except:
+        except Exception as e:
+            self._logger.error(
+                "Unexpected error parsing chunking output. cocktail_id=%s error=%s raw_response=%s",
+                cocktail_id,
+                e,
+                self._truncate(result_content),
+            )
             self._log_content_json(cocktail_id, result_content)
             raise
+
+    def _build_chunks(self, array_result: Any) -> List[CocktailDescriptionChunk]:
+        """Normalize the LLM's parsed JSON output into a list of CocktailDescriptionChunk.
+
+        Handles cases where the LLM double-encodes array items as JSON strings
+        instead of returning JSON objects directly, or wraps the whole array in a string.
+        """
+        if isinstance(array_result, str):
+            array_result = json.loads(array_result)
+
+        if not isinstance(array_result, list):
+            raise ValueError(f"Expected a JSON array of chunk objects, got {type(array_result).__name__}")
+
+        chunks: List[CocktailDescriptionChunk] = []
+        for item in array_result:
+            if isinstance(item, str):
+                item = json.loads(item)
+
+            if not isinstance(item, dict):
+                raise ValueError(f"Expected a JSON object for each chunk, got {type(item).__name__}")
+
+            chunks.append(CocktailDescriptionChunk(**item))
+
+        return chunks
 
     def _parse_agent_result(self, agent_result: dict[str, Any] | Any) -> str | None:
         result_list = cast(list[BaseMessage], agent_result["messages"])
@@ -159,6 +198,10 @@ class LLMContentChunker:
             "callbacks": [self.langfuse_handler],
             "metadata": metadata,
         }
+
+    def _truncate(self, content: str, max_len: int = 2000) -> str:
+        """Truncates content for safe inline logging without exceeding log size limits."""
+        return content if len(content) <= max_len else f"{content[:max_len]}...<truncated>"
 
     def _log_content_json(self, cocktail_id: str, result_content: str) -> None:
         """Logs the content JSON in chunks to avoid exceeding log size limits."""
