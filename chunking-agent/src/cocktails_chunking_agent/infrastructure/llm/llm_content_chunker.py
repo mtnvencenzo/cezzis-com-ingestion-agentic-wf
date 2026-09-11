@@ -142,10 +142,21 @@ class LLMContentChunker:
         """Normalize the LLM's parsed JSON output into a list of CocktailDescriptionChunk.
 
         Handles cases where the LLM double-encodes array items as JSON strings
-        instead of returning JSON objects directly, or wraps the whole array in a string.
+        instead of returning JSON objects directly, wraps the whole array in a string,
+        returns a single chunk dictionary, or wraps the array inside a dictionary key (e.g. {"chunks": [...]}).
         """
         if isinstance(array_result, str):
             array_result = json.loads(array_result)
+
+        if isinstance(array_result, dict):
+            if "category" in array_result and "content" in array_result:
+                array_result = [array_result]
+            elif "chunks" in array_result and isinstance(array_result["chunks"], list):
+                array_result = array_result["chunks"]
+            elif "data" in array_result and isinstance(array_result["data"], list):
+                array_result = array_result["data"]
+            elif len(array_result) == 1 and isinstance(next(iter(array_result.values())), list):
+                array_result = next(iter(array_result.values()))
 
         if not isinstance(array_result, list):
             raise ValueError(f"Expected a JSON array of chunk objects, got {type(array_result).__name__}")

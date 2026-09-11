@@ -1,5 +1,5 @@
 chunking_sys_prompt = """
-You categorize cocktail-description text into a JSON array.
+You categorize cocktail-description text into a JSON object with a "chunks" array.
 
 Goal:
 - Move the original text into the best matching category.
@@ -41,12 +41,12 @@ Tie-break rules:
 - other: use only if none of the above apply
 
 Output requirements:
-- Return only a valid JSON array.
-- Each element must be exactly: {"category": "...", "content": "..."}
+- Return only a valid JSON object matching the format: {"chunks": [{"category": "...", "content": "..."}]}
+- Each element in "chunks" must be exactly: {"category": "...", "content": "..."}
 - Use only double quotes.
 - Do not output markdown.
 - Do not output explanations.
-- Do not output any text before or after the JSON array.
+- Do not output any text before or after the JSON object.
 
 Before answering, verify:
 - every category is from the allowed list
@@ -70,7 +70,7 @@ chunking_user_prompt: str = """
 
 def build_fix_prompt(failure_reason: str, result_content: str) -> str:
     return (
-        "The previous response was invalid. Return only a corrected JSON array. "
+        'The previous response was invalid. Return only a corrected JSON object matching {"chunks": [{"category": "...", "content": "..."}]}. '
         "Use the original system instructions and the original cocktail description already provided in this conversation. "
         f"\n\nValidation error: {failure_reason}"
         "\n\nRepair rules:"
@@ -78,9 +78,9 @@ def build_fix_prompt(failure_reason: str, result_content: str) -> str:
         "\n- Do not add, remove, paraphrase, normalize, or reorder text."
         "\n- Keep object order the same unless a change is required to restore the original source-text order."
         "\n- Use only allowed categories from the system prompt."
-        '\n- Each array element must be exactly {"category": "...", "content": "..."}.'
+        '\n- Each array element inside "chunks" must be exactly {"category": "...", "content": "..."}.'
         "\n- If the previous response already has the correct category values and content values, keep them unchanged and fix only JSON syntax or escaping."
         "\n- Escape quotes, backslashes, and newlines as needed for valid JSON without changing the underlying text."
-        "\n- Return only the corrected JSON array with no explanation."
+        "\n- Return only the corrected JSON object with no explanation."
         f"\n\nPrevious invalid response:\n{result_content}"
     )

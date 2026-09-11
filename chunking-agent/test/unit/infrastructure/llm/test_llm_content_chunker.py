@@ -6,11 +6,11 @@ from cocktails_chunking_agent.infrastructure.llm.llm_content_chunker import LLMC
 
 class TestLLMContentChunker:
     def test_build_fix_prompt_preserves_content_repair_constraints(self) -> None:
-        fix_prompt = build_fix_prompt("bad json", '[{"category": "ingredients"}]')
+        fix_prompt = build_fix_prompt("bad json", '{"chunks": [{"category": "ingredients"}]}')
 
         assert "Preserve the original source text exactly." in fix_prompt
         assert "fix only JSON syntax or escaping" in fix_prompt
-        assert "Return only the corrected JSON array with no explanation." in fix_prompt
+        assert "Return only the corrected JSON object with no explanation." in fix_prompt
 
     def test_build_langfuse_config_includes_trace_metadata_for_initial_attempt(self, mocker) -> None:
         chunker = LLMContentChunker.__new__(LLMContentChunker)
@@ -50,3 +50,29 @@ class TestLLMContentChunker:
         assert metadata is not None
         assert metadata["validation_error"] == "invalid json"
         assert metadata["langfuse_tags"] == ["chunking", "attempt:2", "retry_status:repair"]
+
+    def test_build_chunks_accepts_single_dict(self) -> None:
+        chunker = LLMContentChunker.__new__(LLMContentChunker)
+        result = chunker._build_chunks({"category": "ingredients", "content": "1 oz gin"})
+        assert len(result) == 1
+        assert result[0].category == "ingredients"
+        assert result[0].content == "1 oz gin"
+
+    def test_build_chunks_accepts_dict_wrapping_chunks_list(self) -> None:
+        chunker = LLMContentChunker.__new__(LLMContentChunker)
+        result = chunker._build_chunks({"chunks": [{"category": "directions", "content": "Stir well"}]})
+        assert len(result) == 1
+        assert result[0].category == "directions"
+        assert result[0].content == "Stir well"
+
+    def test_build_chunks_accepts_standard_list(self) -> None:
+        chunker = LLMContentChunker.__new__(LLMContentChunker)
+        result = chunker._build_chunks(
+            [
+                {"category": "ingredients", "content": "1 oz gin"},
+                {"category": "directions", "content": "Stir with ice"},
+            ]
+        )
+        assert len(result) == 2
+        assert result[0].category == "ingredients"
+        assert result[1].category == "directions"
