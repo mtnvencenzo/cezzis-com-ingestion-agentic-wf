@@ -50,7 +50,7 @@ jobs:
     needs: [gitVersion]
     uses: mtnvencenzo/workflows/.github/workflows/py-build.yaml@main
     with:
-      python_version: '3.12.3'
+      python_version: '3.12'
       working_directory: 'embedding-agent'
       cache_dependencies: false
       ruff_config: '.ruff.toml'
