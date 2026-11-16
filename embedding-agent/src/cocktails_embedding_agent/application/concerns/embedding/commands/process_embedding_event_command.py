@@ -110,10 +110,7 @@ class ProcessEmbeddingEventCommandHandler:
                     )
                     for ingredient in command.model.cocktail_model.ingredients
                 ],
-                glassware=[
-                    aisearch_models.CocktailSearchGlasswareTypeModel[glass.value]
-                    for glass in command.model.cocktail_model.glassware
-                ],
+                glassware=command.model.cocktail_model.glassware,
                 rating=command.model.cocktail_model.rating.rating,
                 images=[
                     CocktailSearchImageModel(

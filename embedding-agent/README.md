@@ -23,6 +23,9 @@ This service is AI-adjacent rather than model-hosting.
 
 That means the model implementation lives behind the AI Search service, while this agent is responsible for event ingestion, request shaping, and authenticated delivery.
 
+Cocktails API glassware values are passed through as strings to the AI Search API. Deploy the AI Search API
+with string glassware support before deploying this version of the embedding agent.
+
 ## Runtime Stack
 
 - Python 3.12

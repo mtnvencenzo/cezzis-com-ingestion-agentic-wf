@@ -29,40 +29,6 @@ class CocktailDescriptionChunk(BaseModel):
     )
 
 
-class CocktailSearchGlasswareTypeModel(Enum):
-    """
-    The types of glassware used for serving cocktails.
-    """
-
-    none = "none"
-    rocks = "rocks"
-    highball = "highball"
-    shotGlass = "shotGlass"
-    coupe = "coupe"
-    copperMug = "copperMug"
-    collins = "collins"
-    cocktailGlass = "cocktailGlass"
-    wineGlass = "wineGlass"
-    flute = "flute"
-    lowball = "lowball"
-    fizz = "fizz"
-    tikiMug = "tikiMug"
-    pintGlass = "pintGlass"
-    julepTin = "julepTin"
-    doubleRocks = "doubleRocks"
-    hurricane = "hurricane"
-    hollowedPineapple = "hollowedPineapple"
-    snifter = "snifter"
-    scorpionBowl = "scorpionBowl"
-    nickAndNora = "nickAndNora"
-    toddy = "toddy"
-    pilsner = "pilsner"
-    sling = "sling"
-    goblet = "goblet"
-    cantaritosClayPot = "cantaritosClayPot"
-    martini = "martini"
-
-
 class CocktailSearchImageModel(BaseModel):
     """
     Model representing an image used in a cocktail, including its name, unit of measure, requirement type, preparation, and suggestions.
@@ -428,7 +394,7 @@ class CocktailEmbeddingModel(BaseModel):
         ],
         title="Images",
     )
-    glassware: List[CocktailSearchGlasswareTypeModel] = Field(
+    glassware: List[str] = Field(
         ...,
         description="List of glassware types used for the cocktail",
         examples=[["rocks", "coupe", "cocktailGlass"]],
@@ -507,7 +473,7 @@ class CocktailIngredientMatchSearchModel(BaseModel):
         ],
         title="Images",
     )
-    glassware: List[CocktailSearchGlasswareTypeModel] = Field(
+    glassware: List[str] = Field(
         ...,
         description="List of glassware types used for the cocktail",
         examples=[["rocks", "coupe", "cocktailGlass"]],
@@ -571,7 +537,7 @@ class CocktailSearchModel(BaseModel):
     images: List[CocktailSearchImageModel] = Field(
         ..., description="Images associated with the cocktail", title="Images"
     )
-    glassware: List[CocktailSearchGlasswareTypeModel] = Field(
+    glassware: List[str] = Field(
         ...,
         description="List of glassware types used for the cocktail",
         examples=[["rocks", "coupe", "cocktailGlass"]],

@@ -206,36 +206,6 @@ class CollectionVisibilityTypeModel(Enum):
     season = "season"
 
 
-class GlasswareTypeModel(Enum):
-    none = "none"
-    rocks = "rocks"
-    highball = "highball"
-    shotGlass = "shotGlass"
-    coupe = "coupe"
-    copperMug = "copperMug"
-    collins = "collins"
-    cocktailGlass = "cocktailGlass"
-    wineGlass = "wineGlass"
-    flute = "flute"
-    lowball = "lowball"
-    fizz = "fizz"
-    tikiMug = "tikiMug"
-    pintGlass = "pintGlass"
-    julepTin = "julepTin"
-    doubleRocks = "doubleRocks"
-    hurricane = "hurricane"
-    hollowedPineapple = "hollowedPineapple"
-    snifter = "snifter"
-    scorpionBowl = "scorpionBowl"
-    nickAndNora = "nickAndNora"
-    toddy = "toddy"
-    pilsner = "pilsner"
-    sling = "sling"
-    goblet = "goblet"
-    cantaritosClayPot = "cantaritosClayPot"
-    martini = "martini"
-
-
 class IngredientApplicationModel(Enum):
     base = "base"
     additional = "additional"
@@ -613,7 +583,7 @@ class CocktailReportsModel(BaseModel):
     serves: int = Field(..., description="Number of servings", examples=[1])
     prepTimeMinutes: int = Field(..., description="Preparation time in minutes", examples=[5])
     images: List[CocktailReportsImageModel] = Field(..., description="Images associated with the cocktail")
-    glassware: List[GlasswareTypeModel] = Field(
+    glassware: List[str] = Field(
         ...,
         description="List of glassware types used for the cocktail",
         examples=[["rocks", "coupe"]],
@@ -781,7 +751,7 @@ class CocktailIngredientMatchSearchModel(BaseModel):
     serves: int = Field(..., description="Number of servings", examples=[1])
     prepTimeMinutes: int = Field(..., description="Preparation time in minutes", examples=[5])
     images: List[CocktailSearchImageModel] = Field(..., description="Images associated with the cocktail")
-    glassware: List[GlasswareTypeModel] = Field(
+    glassware: List[str] = Field(
         ...,
         description="List of glassware types used for the cocktail",
         examples=[["rocks", "coupe"]],
@@ -849,7 +819,7 @@ class CocktailModel(BaseModel):
         examples=[True],
     )
     images: List[CocktailImageModel] = Field(..., description="A list of images for the cocktail recipe")
-    glassware: List[GlasswareTypeModel] = Field(
+    glassware: List[str] = Field(
         ...,
         description="The recommended glassware to use when serving the cocktail",
         examples=[["coupe", "cocktailGlass"]],
@@ -916,7 +886,7 @@ class CocktailSearchModel(BaseModel):
     serves: int = Field(..., description="Number of servings", examples=[1])
     prepTimeMinutes: int = Field(..., description="Preparation time in minutes", examples=[5])
     images: List[CocktailSearchImageModel] = Field(..., description="Images associated with the cocktail")
-    glassware: List[GlasswareTypeModel] = Field(
+    glassware: List[str] = Field(
         ...,
         description="List of glassware types used for the cocktail",
         examples=[["rocks", "coupe"]],
