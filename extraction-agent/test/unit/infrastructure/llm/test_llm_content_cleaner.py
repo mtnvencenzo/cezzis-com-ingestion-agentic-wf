@@ -17,7 +17,7 @@ class TestLLMContentCleaner:
         cleaner.cleaning_graph = AsyncMock()
         cleaner.cleaning_graph.ainvoke = AsyncMock(return_value={"final_content": "Title", "current_content": "Title"})
 
-        result = asyncio.run(cleaner.clean_content("adonis"))
+        result = asyncio.run(cleaner.clean_content("adonis", "de"))
 
         assert result == "Title"
         cleaner._initialize_mcp_agent.assert_awaited_once()
@@ -25,6 +25,7 @@ class TestLLMContentCleaner:
 
         graph_input = cleaner.cleaning_graph.ainvoke.await_args.args[0]
         assert graph_input["cocktail_id"] == "adonis"
+        assert graph_input["locale"] == "de"
         assert graph_input["cocktail_payload"] is None
         assert graph_input["current_content"] == ""
         assert graph_input["completed_tools"] == []
@@ -44,7 +45,7 @@ class TestLLMContentCleaner:
         cleaner.cleaning_graph.ainvoke = AsyncMock(side_effect=never_return)
 
         try:
-            asyncio.run(cleaner.clean_content("adonis"))
+            asyncio.run(cleaner.clean_content("adonis", "de"))
         except RuntimeError as exc:
             assert str(exc) == "LLM cleaning timed out after 0.001 seconds."
         else:
@@ -345,3 +346,55 @@ class TestLLMContentCleaner:
             assert "maximum number of tool iterations" in str(exc)
         else:
             raise AssertionError("Expected RuntimeError when tool iterations exceed the limit")
+
+    def test_update_after_tool_rejects_a_cocktail_retrieved_in_another_language(self) -> None:
+        cleaner = object.__new__(LLMContentCleaner)
+        cleaner.processing_tools_by_name = {"get_cocktail": object()}
+
+        try:
+            cleaner._update_after_tool(
+                {
+                    "messages": [
+                        ToolMessage(
+                            content='{"item": {"id": "adonis", "locale": "en", "content": "## Title"}}',
+                            tool_call_id="call-1",
+                            name="get_cocktail",
+                        )
+                    ],
+                    "cocktail_id": "adonis",
+                    "locale": "de",
+                    "cocktail_payload": None,
+                    "current_content": "",
+                    "completed_tools": [],
+                    "final_content": None,
+                }
+            )
+        except RuntimeError as exc:
+            assert "'de' was requested" in str(exc)
+        else:
+            raise AssertionError("Expected a RuntimeError for a cocktail retrieved in another language")
+
+    def test_update_after_tool_accepts_a_cocktail_retrieved_in_the_requested_language(self) -> None:
+        cleaner = object.__new__(LLMContentCleaner)
+        cleaner.processing_tools_by_name = {"get_cocktail": object()}
+
+        result = cleaner._update_after_tool(
+            {
+                "messages": [
+                    ToolMessage(
+                        content='{"item": {"id": "adonis", "locale": "de", "content": "## Titel"}}',
+                        tool_call_id="call-1",
+                        name="get_cocktail",
+                    )
+                ],
+                "cocktail_id": "adonis",
+                "locale": "de",
+                "cocktail_payload": None,
+                "current_content": "",
+                "completed_tools": [],
+                "final_content": None,
+            }
+        )
+
+        assert result["cocktail_payload"]["item"]["locale"] == "de"
+        assert "de" in result["messages"][0].content

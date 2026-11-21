@@ -18,6 +18,7 @@ class TestLLMContentChunker:
 
         config = chunker._build_langfuse_config(
             cocktail_id="cocktail-123",
+            locale="de",
             attempt_number=1,
             retry_status="initial",
         )
@@ -31,7 +32,8 @@ class TestLLMContentChunker:
         assert metadata["attempt_number"] == 1
         assert metadata["retry_status"] == "initial"
         assert metadata["langfuse_session_id"] == "cocktail-123"
-        assert metadata["langfuse_tags"] == ["chunking", "attempt:1", "retry_status:initial"]
+        assert metadata["locale"] == "de"
+        assert metadata["langfuse_tags"] == ["chunking", "attempt:1", "retry_status:initial", "locale:de"]
         assert "validation_error" not in metadata
 
     def test_build_langfuse_config_includes_validation_error_for_retry(self, mocker) -> None:
@@ -40,6 +42,7 @@ class TestLLMContentChunker:
 
         config = chunker._build_langfuse_config(
             cocktail_id="cocktail-123",
+            locale="de",
             attempt_number=2,
             retry_status="repair",
             validation_error="invalid json",
@@ -49,7 +52,7 @@ class TestLLMContentChunker:
 
         assert metadata is not None
         assert metadata["validation_error"] == "invalid json"
-        assert metadata["langfuse_tags"] == ["chunking", "attempt:2", "retry_status:repair"]
+        assert metadata["langfuse_tags"] == ["chunking", "attempt:2", "retry_status:repair", "locale:de"]
 
     def test_build_chunks_accepts_single_dict(self) -> None:
         chunker = LLMContentChunker.__new__(LLMContentChunker)

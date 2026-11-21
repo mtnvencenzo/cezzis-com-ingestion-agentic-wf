@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from cezzis_kafka import spawn_consumers_async
@@ -31,13 +32,16 @@ class RunEmbeddingAgentCommandHandler:
         Args:
             command (RunEmbeddingAgentCommand): The command to handle
         Returns:
-            bool: True if the agent ran successfully, False otherwise
+            bool: True if the agent ran successfully, False otherwise. A disabled agent idles until the process stops.
         """
 
         self.logger.info("Starting Cocktail Embedding Agent")
 
         if not self.app_options.enabled:
-            self.logger.info("Embedding agent is disabled. Exiting.")
+            # Stay running without consuming, so a paused agent is a healthy idle pod instead of a crash-looping one
+            # (the process exiting makes the pod restart). Flip the setting back on and restart to resume.
+            self.logger.info("Embedding agent is disabled. Staying idle and not reading from the queue.")
+            await asyncio.Event().wait()
             return False
 
         await spawn_consumers_async(

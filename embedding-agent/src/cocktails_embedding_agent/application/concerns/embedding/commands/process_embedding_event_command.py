@@ -30,6 +30,9 @@ class ProcessEmbeddingEventCommandValidator:
         if not command.model or not command.model.cocktail_model or not command.model.cocktail_model.id:
             raise ValueError("Invalid cocktail model provided for embedding processing")
 
+        if not command.model.cocktail_model.locale or not command.model.cocktail_model.locale.strip():
+            raise ValueError("Cocktail model provided for embedding processing has no locale")
+
         chunks_to_embed = [chunk for chunk in command.model.chunks if chunk.content.strip() != ""]
 
         if not chunks_to_embed or len(chunks_to_embed) == 0:
@@ -65,6 +68,7 @@ class ProcessEmbeddingEventCommandHandler:
             msg="Processing cocktail embedding message item",
             extra={
                 "cocktail_id": command.model.cocktail_model.id,
+                "locale": command.model.cocktail_model.locale,
             },
         )
 
@@ -76,10 +80,12 @@ class ProcessEmbeddingEventCommandHandler:
                 "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
                 "messaging.kafka.topic_name": self.app_options.consumer_topic_name,
                 "cocktail_id": command.model.cocktail_model.id,
+                "locale": command.model.cocktail_model.locale,
             },
         )
 
         embedding_rq = CocktailEmbeddingRq(
+            locale=command.model.cocktail_model.locale,
             contentChunks=[
                 CocktailDescriptionChunk(content=chunk.content, category=chunk.category) for chunk in chunks_to_embed
             ],
@@ -194,6 +200,7 @@ class ProcessEmbeddingEventCommandHandler:
                 "messaging.kafka.bootstrap_servers": self.kafka_consumer_settings.bootstrap_servers,
                 "messaging.kafka.topic_name": self.app_options.consumer_topic_name,
                 "cocktail_id": command.model.cocktail_model.id,
+                "locale": command.model.cocktail_model.locale,
                 "cocktail_ingestion_state": "embedding-succeeded",
             },
         )

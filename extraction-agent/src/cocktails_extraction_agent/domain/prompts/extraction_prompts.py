@@ -7,11 +7,16 @@ This workflow retrieves a full cocktail record in its structured json format and
 Use the available tools whenever a transformation or cleaning is needed instead of replacing them with your own implementation.
 Do not add, remove or alter any textual content from the cocktail content data.  Only remove code syntax and special characters that are not relevant for the cocktail content understanding.
 If the current working cocktail content has already been fully transformed, return the content as is without calling any tools.
+The cocktail content may be written in any language. Keep it in its original language and never translate it.
 """
 
 
 def build_extraction_stepped_user_prompt(
-    cocktail_id: str, cocktail_payload: dict[str, Any] | None, current_content: str, completed_tools: list[str]
+    cocktail_id: str,
+    locale: str | None,
+    cocktail_payload: dict[str, Any] | None,
+    current_content: str,
+    completed_tools: list[str],
 ) -> str:
     completed_summary = ", ".join(completed_tools) if completed_tools else "none"
     payload_text = json.dumps(cocktail_payload, ensure_ascii=True, indent=2) if cocktail_payload is not None else "none"
@@ -19,6 +24,7 @@ def build_extraction_stepped_user_prompt(
 
     return (
         "Retrieve the cocktail if the cocktail payload has not already been retrieved and inspect the full payload for its content property.\n"
+        "When retrieving the cocktail, always pass the locale shown below as the locale argument of the retrieval tool so the content is returned in that language.\n"
         "Use the item content property from the payload as inputs to the next available tools.\n"
         "Convert the cocktail content into plain text stripping out markdown syntax, html tags, special json characters and emojis.\n"
         "Do not remove, add or alter any textual content from the cocktail content data.  Only remove code syntax and special characters that are not relevant for the cocktail content understanding.\n"
@@ -30,6 +36,8 @@ def build_extraction_stepped_user_prompt(
         "If the result is already fully transformed, return only the final plain text and do not call a tool.\n\n"
         "Here is the cocktail id:\n"
         f"{cocktail_id or 'none'}\n\n"
+        "Here is the locale (language) of the cocktail content, which must be preserved without translation:\n"
+        f"{locale or 'none'}\n\n"
         "Here is the json cocktail payload:\n"
         f"{payload_text}\n\n"
         "Here is the current working content:\n"

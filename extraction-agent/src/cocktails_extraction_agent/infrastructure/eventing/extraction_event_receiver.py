@@ -118,7 +118,7 @@ class ExtractionEventReceiver(BaseAgentEventReceiver):
                             with super().create_processing_read_span(
                                 self.tracer,
                                 "cocktail-extraction-item-processing",
-                                span_attributes={"cocktail_id": cocktail_id},
+                                span_attributes={"cocktail_id": cocktail_id, "locale": cocktail_model.locale},
                             ):
                                 await self._process_message(model=cocktail_model)
                         except Exception as e:
@@ -128,6 +128,7 @@ class ExtractionEventReceiver(BaseAgentEventReceiver):
                                     **super().get_kafka_attributes(msg),
                                     "error": str(e),
                                     "cocktail_id": cocktail_id,
+                                    "locale": cocktail_model.locale,
                                     "cocktail_ingestion_state": "extraction-failed",
                                 },
                             )

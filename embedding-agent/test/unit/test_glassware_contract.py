@@ -57,6 +57,7 @@ def test_handler_preserves_glassware_when_sending_to_aisearch():
     handler = ProcessEmbeddingEventCommandHandler(settings, options, settings, client)
     cocktail = CocktailModel.model_construct(
         id="test",
+        locale="en",
         title="Test",
         descriptiveTitle="Test Cocktail",
         serves=1,

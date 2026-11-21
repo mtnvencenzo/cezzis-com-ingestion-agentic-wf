@@ -8,6 +8,7 @@ The embedding agent consumes chunked cocktail content from Kafka and forwards it
 
 - Consumes `CocktailChunkingModel` messages from Kafka.
 - Filters empty chunks before processing.
+- Sends the cocktail's locale (`cocktail_model.locale`) as the embedding request `locale` and as `Accept-Language`, so vectors are stored per language. Messages without a locale are rejected.
 - Maps chunk payloads into the generated AI Search request models.
 - Authenticates with OAuth machine-to-machine tokens.
 - Calls the AI Search embeddings endpoint with both bearer auth and `X-Key`.
@@ -46,7 +47,7 @@ Core settings:
 
 - `KAFKA_BOOTSTRAP_SERVERS`
 - `KAFKA_CONSUMER_GROUP`
-- `EMBEDDING_AGENT_ENABLED`
+- `EMBEDDING_AGENT_ENABLED` (when `false` the agent stays running but idle and does not read from the queue; restart the pod to apply a change)
 - `EMBEDDING_AGENT_KAFKA_TOPIC_NAME`
 - `EMBEDDING_AGENT_KAFKA_NUM_CONSUMERS`
 - `EMBEDDING_AGENT_KAFKA_MAX_POLL_INTERVAL_MS`

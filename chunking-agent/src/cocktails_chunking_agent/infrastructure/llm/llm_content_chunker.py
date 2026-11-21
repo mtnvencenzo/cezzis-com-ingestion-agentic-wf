@@ -53,10 +53,14 @@ class LLMContentChunker:
         self._logger = logging.getLogger("llm_content_chunker")
         self._app_options = app_options
 
-    async def chunk_content(self, cocktail_id: str, extraction_text: str) -> List[CocktailDescriptionChunk] | None:
+    async def chunk_content(
+        self, cocktail_id: str, locale: str, extraction_text: str
+    ) -> List[CocktailDescriptionChunk] | None:
         """Convert exracted plain text content into chunks using LLM.
 
         Args:
+            cocktail_id (str): The cocktail identifier.
+            locale (str): The language the extracted text is written in. The chunks stay in that language.
             extraction_text (str): The extracted plain text content to chunk.
 
         Returns:
@@ -66,10 +70,11 @@ class LLMContentChunker:
 
         agent_messages = [
             SystemMessage(content=chunking_sys_prompt),
-            HumanMessage(content=chunking_user_prompt.format(input_text=extraction_text)),
+            HumanMessage(content=chunking_user_prompt.format(input_text=extraction_text, locale=locale)),
         ]
         initial_langfuse_config = self._build_langfuse_config(
             cocktail_id=cocktail_id,
+            locale=locale,
             attempt_number=1,
             retry_status="initial",
         )
@@ -102,6 +107,7 @@ class LLMContentChunker:
             agent_messages.append(HumanMessage(content=fix_prompt))
             retry_langfuse_config = self._build_langfuse_config(
                 cocktail_id=cocktail_id,
+                locale=locale,
                 attempt_number=2,
                 retry_status="repair",
                 validation_error=str(e),
@@ -190,16 +196,23 @@ class LLMContentChunker:
     def _build_langfuse_config(
         self,
         cocktail_id: str,
+        locale: str,
         attempt_number: int,
         retry_status: str,
         validation_error: str | None = None,
     ) -> RunnableConfig:
         metadata: dict[str, object] = {
             "cocktail_id": cocktail_id,
+            "locale": locale,
             "attempt_number": attempt_number,
             "retry_status": retry_status,
             "langfuse_session_id": cocktail_id,
-            "langfuse_tags": ["chunking", f"attempt:{attempt_number}", f"retry_status:{retry_status}"],
+            "langfuse_tags": [
+                "chunking",
+                f"attempt:{attempt_number}",
+                f"retry_status:{retry_status}",
+                f"locale:{locale}",
+            ],
         }
 
         if validation_error:

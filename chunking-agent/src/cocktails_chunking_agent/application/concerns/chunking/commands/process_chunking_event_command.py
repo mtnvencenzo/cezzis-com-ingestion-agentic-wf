@@ -27,6 +27,9 @@ class ProcessChunkingEventCommandValidator:
         if not command.model or not command.model.cocktail_model or not command.model.cocktail_model.id:
             raise ValueError("Invalid cocktail model provided for chunking processing")
 
+        if not command.model.cocktail_model.locale or not command.model.cocktail_model.locale.strip():
+            raise ValueError("Cocktail model provided for chunking processing has no locale")
+
         if command.model.extraction_text.strip() == "":
             raise ValueError("Received empty extraction text in cocktail chunking message")
 
@@ -58,11 +61,13 @@ class ProcessChunkingEventCommandHandler:
             msg="Processing cocktail chunking message item",
             extra={
                 "cocktail_id": command.model.cocktail_model.id,
+                "locale": command.model.cocktail_model.locale,
             },
         )
 
         chunks = await self.llm_content_chunker.chunk_content(
             cocktail_id=command.model.cocktail_model.id,
+            locale=command.model.cocktail_model.locale,
             extraction_text=command.model.extraction_text,
         )
 
@@ -71,6 +76,7 @@ class ProcessChunkingEventCommandHandler:
                 msg="No chunks were created from cocktail extraction text, skipping sending to embedding topic",
                 extra={
                     "cocktail_id": command.model.cocktail_model.id,
+                    "locale": command.model.cocktail_model.locale,
                     "cocktail_ingestion_state": "chunking-failed",
                 },
             )
@@ -82,6 +88,7 @@ class ProcessChunkingEventCommandHandler:
                 "messaging.kafka.bootstrap_servers": self.kafka_consiumer_settings.bootstrap_servers,
                 "messaging.kafka.topic_name": self.app_options.results_topic_name,
                 "cocktail_id": command.model.cocktail_model.id,
+                "locale": command.model.cocktail_model.locale,
             },
         )
 
@@ -104,6 +111,7 @@ class ProcessChunkingEventCommandHandler:
                 "messaging.kafka.bootstrap_servers": self.kafka_consiumer_settings.bootstrap_servers,
                 "messaging.kafka.topic_name": self.app_options.results_topic_name,
                 "cocktail_id": command.model.cocktail_model.id,
+                "locale": command.model.cocktail_model.locale,
                 "cocktail_ingestion_state": "chunking-succeeded",
             },
         )

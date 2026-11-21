@@ -29,11 +29,15 @@ class AISearchClient(IAISearchClient):
             "Authorization": f"Bearer {access_token}",
             "X-Key": self.aisearch_api_options.api_key,
         }
+        if embedding_rq.locale:
+            headers["Accept-Language"] = embedding_rq.locale
 
         async with httpx.AsyncClient(timeout=self.aisearch_api_options.timeout_seconds) as client:
             response = await client.put(url, content=embedding_rq.model_dump_json(), headers=headers)
             if response.status_code == 204:
                 return True
+            elif response.status_code == 400:
+                raise ValueError(f"Bad Request - the cocktail's locale may not be supported: {response.text}")
             elif response.status_code == 401:
                 raise RuntimeError(f"Unauthorized: {response.text}")
             elif response.status_code == 403:

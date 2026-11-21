@@ -18,7 +18,7 @@ data:
   OTEL_ENABLE_LOGGING: "true"
   KAFKA_BOOTSTRAP_SERVERS: "kafka-broker-1.kafka-platform.svc.cluster.local:19092,kafka-broker-2.kafka-platform.svc.cluster.local:19093,kafka-broker-3.kafka-platform.svc.cluster.local:19095"
   KAFKA_CONSUMER_GROUP: "cocktails-ingestion-chunking-agent"
-  CHUNKING_AGENT_ENABLED: "false"
+  CHUNKING_AGENT_ENABLED: "true"
   CHUNKING_AGENT_KAFKA_TOPIC_NAME: "cocktails-ingestion-extraction-results-loc"
   CHUNKING_AGENT_KAFKA_NUM_CONSUMERS: "1"
   CHUNKING_AGENT_KAFKA_RESULTS_TOPIC_NAME: "cocktails-ingestion-chunking-results-loc"

@@ -10,6 +10,7 @@ The chunking agent consumes extraction results from Kafka and uses an Ollama-bac
 - Sends extraction text to a LangChain agent backed by `ChatOllama`.
 - Produces structured chunk objects with controlled categories such as ingredients, directions, flavor profile, variations, and historical context.
 - Repairs malformed JSON model output when the first pass is invalid.
+- Chunks in the cocktail's locale (`cocktail_model.locale`): content stays in its source language while category names stay the English identifiers. Messages without a locale are rejected.
 - Publishes `CocktailChunkingModel` payloads to the next Kafka topic for embedding.
 
 ## AI Stack
@@ -51,7 +52,7 @@ Core settings:
 
 - `KAFKA_BOOTSTRAP_SERVERS`
 - `KAFKA_CONSUMER_GROUP`
-- `CHUNKING_AGENT_ENABLED`
+- `CHUNKING_AGENT_ENABLED` (when `false` the agent stays running but idle and does not read from the queue; restart the pod to apply a change)
 - `CHUNKING_AGENT_KAFKA_TOPIC_NAME`
 - `CHUNKING_AGENT_KAFKA_RESULTS_TOPIC_NAME`
 - `CHUNKING_AGENT_KAFKA_NUM_CONSUMERS`

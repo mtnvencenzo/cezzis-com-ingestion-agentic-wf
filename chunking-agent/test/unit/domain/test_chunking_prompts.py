@@ -1,4 +1,4 @@
-from cocktails_chunking_agent.domain.prompts.chunking_prompts import chunking_sys_prompt
+from cocktails_chunking_agent.domain.prompts.chunking_prompts import chunking_sys_prompt, chunking_user_prompt
 
 
 class TestChunkingPrompts:
@@ -14,3 +14,12 @@ class TestChunkingPrompts:
         )
         assert "- glassware" not in chunking_sys_prompt
         assert "serving-vessel instructions" in chunking_sys_prompt
+
+    def test_chunking_prompts_keep_content_in_the_source_language(self) -> None:
+        assert "never translate it" in chunking_sys_prompt
+        assert "English identifiers" in chunking_sys_prompt
+
+        rendered = chunking_user_prompt.format(input_text="Ein Klassiker.", locale="de")
+
+        assert "language (locale) is: de" in rendered
+        assert "Ein Klassiker." in rendered

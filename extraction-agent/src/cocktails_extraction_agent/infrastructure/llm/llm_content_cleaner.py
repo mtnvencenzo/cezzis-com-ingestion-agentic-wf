@@ -23,6 +23,7 @@ from cocktails_extraction_agent.infrastructure.llm.ollama_llm_factory import Oll
 class CleanerState(TypedDict):
     messages: Annotated[list[Any], add_messages]
     cocktail_id: str
+    locale: str
     cocktail_payload: dict[str, Any] | None
     current_content: str
     completed_tools: list[str]
@@ -52,11 +53,12 @@ class LLMContentCleaner:
         self.cleaning_graph = None
         self.processing_tools_by_name: dict[str, Any] = {}
 
-    async def clean_content(self, cocktail_id: str) -> str | None:
+    async def clean_content(self, cocktail_id: str, locale: str) -> str | None:
         """Retrieve a cocktail and transform its content using the MCP-backed graph.
 
         Args:
             cocktail_id (str): The cocktail identifier used by the MCP retrieval tool.
+            locale (str): The language of the cocktail content. The retrieved cocktail must be in this language.
 
         Returns:
             str | None: The cleaned content as a string, or None if cleaning fails.
@@ -71,6 +73,7 @@ class LLMContentCleaner:
             {
                 "messages": [],
                 "cocktail_id": cocktail_id,
+                "locale": locale,
                 "cocktail_payload": None,
                 "current_content": "",
                 "completed_tools": [],
@@ -106,6 +109,7 @@ class LLMContentCleaner:
                 HumanMessage(
                     content=build_extraction_stepped_user_prompt(
                         state.get("cocktail_id"),
+                        state.get("locale"),
                         state.get("cocktail_payload"),
                         state.get("current_content"),
                         state.get("completed_tools", []),
@@ -173,6 +177,7 @@ class LLMContentCleaner:
             updates["cocktail_payload"] = (
                 json.loads(last_message.content) if isinstance(last_message.content, str) else last_message.content
             )
+            self._ensure_payload_locale(updates["cocktail_payload"], state.get("locale"))
             updates["current_content"] = ""
         else:
             updates["current_content"] = self._extract_plain_text(last_message.content) or state["current_content"]
@@ -192,6 +197,7 @@ class LLMContentCleaner:
             HumanMessage(
                 content=build_extraction_stepped_user_prompt(
                     updates["cocktail_id"],
+                    state.get("locale"),
                     updates.get("cocktail_payload"),
                     updates["current_content"],
                     updates["completed_tools"],
@@ -199,6 +205,19 @@ class LLMContentCleaner:
             )
         ]
         return updates
+
+    @staticmethod
+    def _ensure_payload_locale(payload: Any, expected_locale: str | None) -> None:
+        """Fails when the retrieved cocktail is not in the requested language rather than cleaning the wrong text."""
+        if not expected_locale or not isinstance(payload, dict):
+            return
+
+        item = payload.get("item", payload)
+        actual_locale = item.get("locale") if isinstance(item, dict) else None
+        if isinstance(actual_locale, str) and actual_locale.casefold() != expected_locale.casefold():
+            raise RuntimeError(
+                f"Retrieved cocktail content is '{actual_locale}' but '{expected_locale}' was requested."
+            )
 
     def _route_after_tool(self, state: CleanerState) -> str:
         if state.get("final_content"):

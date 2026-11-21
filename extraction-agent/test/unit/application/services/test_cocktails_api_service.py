@@ -1,6 +1,8 @@
 import asyncio
 from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
+
 from cocktails_extraction_agent.application.services.cocktails_api_service import CocktailsApiService
 from cocktails_extraction_agent.domain.config.cocktails_api_options import CocktailsApiOptions
 
@@ -39,6 +41,7 @@ class TestCocktailsApiService:
             result = asyncio.run(
                 service.get_cocktail(
                     id="adonis",
+                    locale="de",
                     resolve_ingredients=True,
                     measurement_system="metric",
                     x_key="override-key",
@@ -50,7 +53,11 @@ class TestCocktailsApiService:
         client.get.assert_awaited_once_with(
             "/api/v1/cocktails/adonis",
             params={"resolveIngredients": True, "measurementSystem": "metric"},
-            headers={"Accept": "application/json; x-api-version=1.0", "X-Key": "override-key"},
+            headers={
+                "Accept": "application/json; x-api-version=1.0",
+                "Accept-Language": "de",
+                "X-Key": "override-key",
+            },
         )
         model_validate.assert_called_once_with({"item": {"id": "adonis"}})
 
@@ -83,10 +90,22 @@ class TestCocktailsApiService:
                 return_value=Mock(item=Mock()),
             ),
         ):
-            asyncio.run(service.get_cocktail(id="adonis"))
+            asyncio.run(service.get_cocktail(id="adonis", locale="en"))
 
         client.get.assert_awaited_once_with(
             "/api/v1/cocktails/adonis",
             params={"resolveIngredients": False, "measurementSystem": "imperial"},
-            headers={"Accept": "application/json; x-api-version=1.0", "X-Key": "configured-key"},
+            headers={
+                "Accept": "application/json; x-api-version=1.0",
+                "Accept-Language": "en",
+                "X-Key": "configured-key",
+            },
         )
+
+    def test_get_cocktail_requires_a_locale(self) -> None:
+        service = CocktailsApiService(
+            cocktails_api_options=CocktailsApiOptions(base_url="https://cocktails.example.com", x_key="key")
+        )
+
+        with pytest.raises(ValueError, match="locale is required"):
+            asyncio.run(service.get_cocktail(id="adonis", locale=" "))

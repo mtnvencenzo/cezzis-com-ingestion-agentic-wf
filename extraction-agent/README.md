@@ -7,7 +7,8 @@ The extraction agent consumes cocktail update events, fetches the latest cocktai
 ## What It Does
 
 - Consumes cocktail update messages from Kafka.
-- Fetches the authoritative cocktail payload from the Cocktails API.
+- Fetches the authoritative cocktail payload from the Cocktails API in the message's locale (`Accept-Language`), and rejects messages without a locale or content that comes back in a different language.
+- Tracks processed versions per cocktail and locale, so each language of a cocktail is processed on its own.
 - Prevents duplicate near-term processing with a configurable cooldown.
 - Produces cleaned plain-text extraction content.
 - Publishes `CocktailExtractionModel` payloads back to Kafka.
@@ -72,7 +73,7 @@ Core settings:
 - `COCKTAILS_API_X_KEY`
 - `KAFKA_BOOTSTRAP_SERVERS`
 - `KAFKA_CONSUMER_GROUP`
-- `EXTRACTION_AGENT_ENABLED`
+- `EXTRACTION_AGENT_ENABLED` (when `false` the agent stays running but idle and does not read from the queue; restart the pod to apply a change)
 - `EXTRACTION_AGENT_KAFKA_TOPIC_NAME`
 - `EXTRACTION_AGENT_KAFKA_RESULTS_TOPIC_NAME`
 - `EXTRACTION_AGENT_KAFKA_NUM_CONSUMERS`

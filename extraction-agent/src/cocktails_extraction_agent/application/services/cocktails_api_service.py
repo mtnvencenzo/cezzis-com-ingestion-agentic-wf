@@ -20,6 +20,7 @@ class CocktailsApiService:
     async def get_cocktail(
         self,
         id: str,
+        locale: str,
         resolve_ingredients: bool = False,
         measurement_system: Literal["imperial", "metric"] = "imperial",
         x_key: str | None = None,
@@ -27,7 +28,10 @@ class CocktailsApiService:
         if not self._cocktails_api_options.base_url:
             raise ValueError("COCKTAILS_API_BASE_URL environment variable is required to call the cocktails API")
 
-        headers = {"Accept": "application/json; x-api-version=1.0"}
+        if not locale or not locale.strip():
+            raise ValueError("A locale is required to retrieve a cocktail from the cocktails API")
+
+        headers = {"Accept": "application/json; x-api-version=1.0", "Accept-Language": locale}
         effective_x_key = x_key if x_key is not None else self._cocktails_api_options.x_key
         if effective_x_key:
             headers["X-Key"] = effective_x_key
